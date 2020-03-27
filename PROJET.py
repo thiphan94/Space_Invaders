@@ -54,7 +54,12 @@ class Bullet(object):
         #     if x[1] < 0:
         #         canvas.delete(self.cercle)
         #         return
-        canvas.move(self.cercle, 0, -10)
+        i = 565
+        while i > 0:
+            canvas.move(self.cercle, 0, -10)
+            canvas.update()
+            time.sleep(0.1)
+            i -= 10
 
 
 #
