@@ -1,12 +1,10 @@
 import tkinter as tk
-from tkinter import *
+
+# from tkinter import *
 import time
-import threading
-import random
-from tkinter import messagebox
 
 
-class Defender(object):
+class Defender:
     def __init__(self):
         self.width = 20
         self.height = 20
@@ -38,33 +36,36 @@ class Defender(object):
                 time.sleep(0.01)
 
     def fire(self, canvas):
-        Bullet(canvas, "up")
+        bullet = Bullet("up")
+        # bullet.moveUp(canvas)
+        self.fired_bullets.append(bullet)
+        print(len(self.fired_bullets))
+        for bullet1 in self.fired_bullets:
+            bullet1.moveUp()
 
 
-class Bullet(object):
-    def __init__(self, canvas, direction):
+class Bullet:
+    def __init__(self, direction):
         if direction == "up":
-            self.cercle = canvas.create_oval(415, 555, 425, 565, fill="red")
-            self.moveUp(canvas)
+            self.cercle = jeu.game.canvas.create_oval(415, 555, 425, 565, fill="red")
+            # self.moveUp(canvas)
 
-    def moveUp(self, canvas):
-        # for i in range(10, 500):
-        #     canvas.move(self.cercle, 0, i)
-        #     x = canvas.coords(self.cercle)
-        #     if x[1] < 0:
-        #         canvas.delete(self.cercle)
-        #         return
+    def moveUp(self):
         i = 565
         while i > 0:
-            canvas.move(self.cercle, 0, -10)
-            canvas.update()
+            jeu.game.canvas.move(self.cercle, 0, -10)
+            jeu.game.canvas.update()
             time.sleep(0.1)
             i -= 10
+        if i < 0:
+            jeu.game.canvas.delete(self.cercle)
+            return
+        # canvas.after(50, moveUp)
 
 
 #
 # #*********************************
-class Game(object):
+class Game:
     def __init__(self, frame):
         width = 800
         height = 600
@@ -79,7 +80,6 @@ class Game(object):
         self.frame.winfo_toplevel().bind("<Key>", self.keypress)
 
     def keypress(self, event):
-        x = 0
         if event.keysym == "Left":
             self.defender.move_in(self.canvas, "left")
         if event.keysym == "Right":
@@ -91,7 +91,7 @@ class Game(object):
         self.start()
 
 
-class SpaceInvaders(object):
+class SpaceInvaders:
     """ Main Game class """
 
     def __init__(self):
@@ -105,6 +105,8 @@ class SpaceInvaders(object):
 
     def play(self):
         self.game.start_animation()
+        if self.game.defender.fired_bullets:
+            self.root.after(0.1, self.game.defender.fired_bullets[0])
         self.root.mainloop()
 
 
