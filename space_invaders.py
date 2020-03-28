@@ -35,35 +35,44 @@ class Defender:
                 canvas.update()
                 time.sleep(0.01)
 
+    # def update(self):
+    #     for bullet in self.fired_bullets:
+    #         bullet.moveUp()
+    #     jeu.game.after(1, self.update)
+
     def fire(self, canvas):
-        bullet = Bullet("up")
-        # bullet.moveUp(canvas)
-        self.fired_bullets.append(bullet)
-        print(len(self.fired_bullets))
-        for bullet1 in self.fired_bullets:
-            bullet1.moveUp()
+        # bullet = Bullet("up")
+        # # bullet.moveUp(canvas)
+        # self.fired_bullets.append(bullet)
+        # print(len(self.fired_bullets))
+        # self.update()
+        bullet = Bullet(str(time.time()))
+        bullet.install_in(canvas)
+        bullet.move_in(canvas)
 
 
 class Bullet:
-    def __init__(self, direction):
-        if direction == "up":
-            self.cercle = jeu.game.canvas.create_oval(415, 555, 425, 565, fill="red")
-            # self.moveUp(canvas)
+    def __init__(self, shooter):
+        self.radius = 5
+        self.color = "red"
+        self.speed = 8
+        self.id = None
+        self.shooter = shooter
 
-    def moveUp(self):
-        i = 565
-        while i > 0:
-            jeu.game.canvas.move(self.cercle, 0, -10)
-            jeu.game.canvas.update()
-            time.sleep(0.1)
-            i -= 10
-        if i < 0:
-            jeu.game.canvas.delete(self.cercle)
-            return
-        # canvas.after(50, moveUp)
+    def install_in(self, canvas):
+        self.id = canvas.create_oval(415, 555, 425, 565, fill=self.color)
+        # self.id = canvas.create_oval(400, 500, fill=self.color)
+
+    def move_in(self, canvas):
+        canvas.move(self.id, 0, -10)
+        canvas.update()
+        # time.sleep(0.1)
+        #
+        # canvas.delete(self.id)
+        print(self.shooter)
+        canvas.after(100, self.move_in, canvas)
 
 
-#
 # #*********************************
 class Game:
     def __init__(self, frame):
@@ -76,7 +85,7 @@ class Game:
 
     def start(self):
         self.defender.install_in(self.canvas)
-        # self.defender.fire(self.canvas)
+        # self.bullet.install_in(self.canvas)
         self.frame.winfo_toplevel().bind("<Key>", self.keypress)
 
     def keypress(self, event):
@@ -89,6 +98,11 @@ class Game:
 
     def start_animation(self):
         self.start()
+
+    def move_bullets(self):
+        pass
+
+    # def move_aliens_fleet(self):
 
 
 class SpaceInvaders:
@@ -105,8 +119,6 @@ class SpaceInvaders:
 
     def play(self):
         self.game.start_animation()
-        if self.game.defender.fired_bullets:
-            self.root.after(0.1, self.game.defender.fired_bullets[0])
         self.root.mainloop()
 
 
