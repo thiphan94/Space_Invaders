@@ -46,9 +46,11 @@ class Defender:
         # self.fired_bullets.append(bullet)
         # print(len(self.fired_bullets))
         # self.update()
-        bullet = Bullet(str(time.time()))
-        bullet.install_in(canvas)
-        bullet.move_in(canvas)
+        if self.max_fired_bullets > 0:
+            self.max_fired_bullets -= 1
+            bullet = Bullet(str(time.time()))
+            bullet.install_in(canvas)
+            bullet.move_in(canvas)
 
 
 class Bullet:
