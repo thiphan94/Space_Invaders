@@ -41,16 +41,19 @@ class Defender:
     #     jeu.game.after(1, self.update)
 
     def fire(self, canvas):
-        # bullet = Bullet("up")
-        # # bullet.moveUp(canvas)
-        # self.fired_bullets.append(bullet)
-        # print(len(self.fired_bullets))
-        # self.update()
-        if self.max_fired_bullets > 0:
-            self.max_fired_bullets -= 1
-            bullet = Bullet(str(time.time()))
+        self.update()
+
+        if len(self.fired_bullets) < 8:
+            bullet = Bullet("shooter")
             bullet.install_in(canvas)
             bullet.move_in(canvas)
+            self.fired_bullets.append(bullet)
+            print(len(self.fired_bullets))
+
+    def update(self):
+        for bullet in self.fired_bullets:
+            if bullet.out_of_sight == True:
+                self.fired_bullets.remove(bullet)
 
 
 class Bullet:
@@ -60,6 +63,7 @@ class Bullet:
         self.speed = 8
         self.id = None
         self.shooter = shooter
+        self.out_of_sight = False
 
     def install_in(self, canvas):
         self.id = canvas.create_oval(415, 555, 425, 565, fill=self.color)
@@ -68,10 +72,10 @@ class Bullet:
     def move_in(self, canvas):
         canvas.move(self.id, 0, -10)
         canvas.update()
-        # time.sleep(0.1)
-        #
-        # canvas.delete(self.id)
-        print(self.shooter)
+        if canvas.coords(self.id)[3] < 10:
+            canvas.delete(self.id)
+            self.out_of_sight = True
+            return
         canvas.after(100, self.move_in, canvas)
 
 
