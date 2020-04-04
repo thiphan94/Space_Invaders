@@ -44,11 +44,10 @@ class Defender:
         self.update()
 
         if len(self.fired_bullets) < 8:
-            bullet = Bullet("shooter")
+            bullet = Bullet(canvas.coords(self.id)[0], 0, "shooter")
             bullet.install_in(canvas)
             bullet.move_in(canvas)
             self.fired_bullets.append(bullet)
-            print(len(self.fired_bullets))
 
     def update(self):
         for bullet in self.fired_bullets:
@@ -57,16 +56,20 @@ class Defender:
 
 
 class Bullet:
-    def __init__(self, shooter):
+    def __init__(self, x, y, shooter):
+        self.x = x
         self.radius = 5
         self.color = "red"
         self.speed = 8
         self.id = None
         self.shooter = shooter
         self.out_of_sight = False
+        self.y = y
 
     def install_in(self, canvas):
-        self.id = canvas.create_oval(415, 555, 425, 565, fill=self.color)
+        self.id = canvas.create_oval(
+            self.x + self.radius, 555, self.x + self.radius + 10, 565, fill=self.color
+        )
         # self.id = canvas.create_oval(400, 500, fill=self.color)
 
     def move_in(self, canvas):
