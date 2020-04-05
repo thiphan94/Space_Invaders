@@ -1,7 +1,70 @@
 import tkinter as tk
-
-# from tkinter import *
 import time
+
+
+class Alien:
+    def __init__(self):
+        self.id = None
+        self.alive = True
+        self.pim = tk.PhotoImage(file="alien.gif")
+        self.steps = 0
+        self.direction = 1
+
+    def touched_by(self, canvas, projectile):
+        pass
+
+    def install_in(self, canvas):
+        # for y in range(50, 200, 50):
+        #     for x in range(100, 700, 80):
+        self.id = canvas.create_image(50, 100, image=self.pim, tags="image")
+        self.move_in(canvas)
+
+    def move_in(self, canvas):
+        # canvas.move(self.id, dx, 0)
+        # canvas.update()
+        # if self.displace <= 200:
+        #     self.displace += 50
+        #     canvas.move(self.id, dx, 0)
+        #     canvas.update()
+        #
+        # else:
+        #     self.displace -= 50
+        #     canvas.move(self.id, -dx, 0)
+        #     canvas.update()
+        #
+        # canvas.after(500, self.move_in, canvas, dx)
+        canvas.move(self.id, self.direction * 10, 0)
+
+        if self.steps == 70:
+            self.direction = -self.direction
+            self.steps = 0
+        self.steps += 1
+
+        print(self.steps)
+        print(self.direction)
+
+        canvas.after(200, self.move_in, canvas)
+
+
+# class Fleet():
+#     def __init__(self):
+#         self.aliens_lines = 5
+#         self.aliens_columns = 10
+#         self.aliens_inner_gap = 20
+#         self.alien_x_delta = 5
+#         self.alien_y_delta = 15
+#         fleet_size =
+#         self.aliens_lines * self.aliens_columns
+#         self.aliens_fleet = [None] * fleet_size
+#
+#     def install_in(self, canvas):
+#         for y in range(0,5,1):
+#             for x in range(0,10,1):
+#
+#     def move_in(self, canvas):
+#         pass
+#     def manage_touched_aliens_by(self,canvas,defender):
+#         pass
 
 
 class Defender:
@@ -35,11 +98,6 @@ class Defender:
                 canvas.update()
                 time.sleep(0.01)
 
-    # def update(self):
-    #     for bullet in self.fired_bullets:
-    #         bullet.moveUp()
-    #     jeu.game.after(1, self.update)
-
     def fire(self, canvas):
         self.update()
 
@@ -70,7 +128,6 @@ class Bullet:
         self.id = canvas.create_oval(
             self.x + self.radius, 555, self.x + self.radius + 10, 565, fill=self.color
         )
-        # self.id = canvas.create_oval(400, 500, fill=self.color)
 
     def move_in(self, canvas):
         canvas.move(self.id, 0, -10)
@@ -91,10 +148,11 @@ class Game:
         self.canvas = tk.Canvas(self.frame, width=width, height=height, bg="black")
         self.canvas.pack(side="top", fill="both", expand=True)
         self.defender = Defender()
+        self.alien = Alien()
 
     def start(self):
         self.defender.install_in(self.canvas)
-        # self.bullet.install_in(self.canvas)
+        self.alien.install_in(self.canvas)
         self.frame.winfo_toplevel().bind("<Key>", self.keypress)
 
     def keypress(self, event):
@@ -110,8 +168,6 @@ class Game:
 
     def move_bullets(self):
         pass
-
-    # def move_aliens_fleet(self):
 
 
 class SpaceInvaders:
