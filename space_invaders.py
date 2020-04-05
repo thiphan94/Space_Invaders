@@ -14,35 +14,20 @@ class Alien:
         pass
 
     def install_in(self, canvas):
-        # for y in range(50, 200, 50):
-        #     for x in range(100, 700, 80):
+
         self.id = canvas.create_image(50, 100, image=self.pim, tags="image")
         self.move_in(canvas)
 
     def move_in(self, canvas):
-        # canvas.move(self.id, dx, 0)
-        # canvas.update()
-        # if self.displace <= 200:
-        #     self.displace += 50
-        #     canvas.move(self.id, dx, 0)
-        #     canvas.update()
-        #
-        # else:
-        #     self.displace -= 50
-        #     canvas.move(self.id, -dx, 0)
-        #     canvas.update()
-        #
-        # canvas.after(500, self.move_in, canvas, dx)
         canvas.move(self.id, self.direction * 10, 0)
 
         if self.steps == 70:
             self.direction = -self.direction
             self.steps = 0
+            canvas.move(self.id, 0, 20)
         self.steps += 1
-
         print(self.steps)
-        print(self.direction)
-
+        print("direc", self.direction)
         canvas.after(200, self.move_in, canvas)
 
 
