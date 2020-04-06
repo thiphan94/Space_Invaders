@@ -20,13 +20,13 @@ class Alien:
     def install_in(self, canvas, dx, dy):
 
         self.id = canvas.create_image(
-            self.dx + 50, self.dy, image=self.pim, tags="image"
+            self.dx + 30, self.dy, image=self.pim, tags="image"
         )
 
     def move_in(self, canvas):
         canvas.move(self.id, self.direction * 10, 0)
 
-        if self.steps == 24:
+        if self.steps == 9:
             self.direction = -self.direction
             self.steps = 0
             canvas.move(self.id, 0, 20)
@@ -49,9 +49,9 @@ class Fleet:
         for y in range(0, 5, 1):
             for x in range(0, 10, 1):
                 self.alien_array.append(Alien(canvas, self.dx, self.dy))
-                self.dx += 50
+                self.dx += 70
             self.dx = 0
-            self.dy += 50
+            self.dy += 70
         self.move_in(canvas)
 
     def move_in(self, canvas):
