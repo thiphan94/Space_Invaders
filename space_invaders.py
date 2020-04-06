@@ -1,5 +1,6 @@
 import tkinter as tk
 import time
+import math
 
 
 class Alien:
@@ -24,12 +25,12 @@ class Alien:
         # self.move_in(canvas)
 
     def move_in(self, canvas):
-        canvas.move(self.id, self.direction * 10, 0)
+        # canvas.move(self.id, self.direction * 10, 0)
 
         if self.steps == 24:
             self.direction = -self.direction
             self.steps = 0
-            canvas.move(self.id, 0, 20)
+            # canvas.move(self.id, 0, 20)
         self.steps += 1
         canvas.after(200, self.move_in, canvas)
 
@@ -60,6 +61,9 @@ class Fleet:
     def move_in(self, canvas):
         for alien in self.alien_array:
             alien.move_in(canvas)
+        #     if canvas.coords(alien)[1] > 10:
+        #         canvas.delete(self.alien_array)
+        # canvas.after(100, self.move_in, canvas)
 
     def manage_touched_aliens_by(self, canvas, defender):
         pass
@@ -109,6 +113,7 @@ class Defender:
         for bullet in self.fired_bullets:
             if bullet.out_of_sight == True:
                 self.fired_bullets.remove(bullet)
+                # pass
 
 
 class Bullet:
@@ -130,11 +135,14 @@ class Bullet:
     def move_in(self, canvas):
         canvas.move(self.id, 0, -10)
         canvas.update()
-        if canvas.coords(self.id)[3] < 10:
-            canvas.delete(self.id)
-            self.out_of_sight = True
-            return
-        canvas.after(100, self.move_in, canvas)
+        cord = canvas.coords(self.id)
+
+        if cord:
+            if cord[3] < 10:
+                canvas.delete(self.id)
+                self.out_of_sight = True
+                return
+            canvas.after(100, self.move_in, canvas)
 
 
 # #*********************************
@@ -147,6 +155,7 @@ class Game:
         self.canvas.pack(side="top", fill="both", expand=True)
         self.defender = Defender()
         self.fleet = Fleet()
+        self.colide()
 
     def start(self):
         self.defender.install_in(self.canvas)
@@ -166,6 +175,25 @@ class Game:
 
     def move_bullets(self):
         pass
+
+    def colide(self):
+        for alien in self.fleet.alien_array:
+            for bullet in self.defender.fired_bullets:
+                cord = self.canvas.coords(bullet.id)
+                if cord:
+                    print(cord)
+                    print(len(self.defender.fired_bullets))
+                    print(cord[1])
+                    distance = math.sqrt(
+                        pow((cord[0] - alien.dx), 2) + pow((cord[1] - alien.dy), 2)
+                    )
+                    # print(cord[1])
+                    print("d", distance)
+                    if distance < 40:
+                        self.defender.fired_bullets.remove(bullet)
+                        self.canvas.delete(bullet.id)
+
+        self.canvas.after(200, self.colide)
 
 
 class SpaceInvaders:
