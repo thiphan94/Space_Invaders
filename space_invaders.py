@@ -25,12 +25,12 @@ class Alien:
         # self.move_in(canvas)
 
     def move_in(self, canvas):
-        # canvas.move(self.id, self.direction * 10, 0)
+        canvas.move(self.id, self.direction * 10, 0)
 
         if self.steps == 24:
             self.direction = -self.direction
             self.steps = 0
-            # canvas.move(self.id, 0, 20)
+            canvas.move(self.id, 0, 20)
         self.steps += 1
         canvas.after(200, self.move_in, canvas)
 
@@ -43,7 +43,7 @@ class Fleet:
         self.alien_x_delta = 5
         self.alien_y_delta = 15
         # fleet_size =
-        self.aliens_lines * self.aliens_columns
+        # self.aliens_lines * self.aliens_columns
         # self.aliens_fleet = [None] * fleet_size
         self.alien_array = []
         self.dx = 0
@@ -61,9 +61,6 @@ class Fleet:
     def move_in(self, canvas):
         for alien in self.alien_array:
             alien.move_in(canvas)
-        #     if canvas.coords(alien)[1] > 10:
-        #         canvas.delete(self.alien_array)
-        # canvas.after(100, self.move_in, canvas)
 
     def manage_touched_aliens_by(self, canvas, defender):
         pass
@@ -111,9 +108,8 @@ class Defender:
 
     def update(self):
         for bullet in self.fired_bullets:
-            if bullet.out_of_sight == True:
+            if bullet.out_of_sight:
                 self.fired_bullets.remove(bullet)
-                # pass
 
 
 class Bullet:
@@ -177,22 +173,23 @@ class Game:
         pass
 
     def colide(self):
-        for alien in self.fleet.alien_array:
-            for bullet in self.defender.fired_bullets:
+        for bullet in self.defender.fired_bullets:
+
+            for alien in self.fleet.alien_array:
                 cord = self.canvas.coords(bullet.id)
-                if cord:
-                    print(cord)
-                    print(len(self.defender.fired_bullets))
-                    print(cord[1])
+                cord_alien = self.canvas.coords(alien.id)
+                if cord and cord_alien:
+                    print("avant", len(self.fleet.alien_array))
                     distance = math.sqrt(
-                        pow((cord[0] - alien.dx), 2) + pow((cord[1] - alien.dy), 2)
+                        pow((cord[0] - cord_alien[0]), 2)
+                        + pow((cord[1] - cord_alien[1]), 2)
                     )
-                    # print(cord[1])
-                    print("d", distance)
                     if distance < 40:
                         self.defender.fired_bullets.remove(bullet)
                         self.canvas.delete(bullet.id)
-
+                        self.fleet.alien_array.remove(alien)
+                        self.canvas.delete(alien.id)
+                        print("apres", len(self.fleet.alien_array))
         self.canvas.after(200, self.colide)
 
 
