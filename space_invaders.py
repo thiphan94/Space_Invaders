@@ -59,7 +59,12 @@ class Fleet:
             alien.move_in(canvas)
 
     def manage_touched_aliens_by(self, canvas, defender):
-        pass
+        for alien in self.alien_array:
+            cord = canvas.coords(alien.id)
+            print("cord", cord[1])
+            if cord[1] > 510:
+                canvas.delete(defender)
+        canvas.after(100, self.manage_touched_aliens_by, canvas, defender)
 
 
 class Defender:
@@ -154,6 +159,7 @@ class Game:
     def start(self):
         self.defender.install_in(self.canvas)
         self.fleet.install_in(self.canvas)
+        self.fleet.manage_touched_aliens_by(self.canvas, self.defender.id)
         self.frame.winfo_toplevel().bind("<Key>", self.keypress)
 
     def keypress(self, event):
