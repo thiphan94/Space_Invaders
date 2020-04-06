@@ -22,7 +22,6 @@ class Alien:
         self.id = canvas.create_image(
             self.dx + 50, self.dy, image=self.pim, tags="image"
         )
-        # self.move_in(canvas)
 
     def move_in(self, canvas):
         canvas.move(self.id, self.direction * 10, 0)
@@ -42,9 +41,6 @@ class Fleet:
         self.aliens_inner_gap = 20
         self.alien_x_delta = 5
         self.alien_y_delta = 15
-        # fleet_size =
-        # self.aliens_lines * self.aliens_columns
-        # self.aliens_fleet = [None] * fleet_size
         self.alien_array = []
         self.dx = 0
         self.dy = 50
@@ -149,8 +145,10 @@ class Game:
         self.frame = frame
         self.canvas = tk.Canvas(self.frame, width=width, height=height, bg="black")
         self.canvas.pack(side="top", fill="both", expand=True)
+        self.explosion_gif = tk.PhotoImage(file="explosion.gif")
         self.defender = Defender()
         self.fleet = Fleet()
+        self.explosions = []
         self.colide()
 
     def start(self):
@@ -174,12 +172,10 @@ class Game:
 
     def colide(self):
         for bullet in self.defender.fired_bullets:
-
             for alien in self.fleet.alien_array:
                 cord = self.canvas.coords(bullet.id)
                 cord_alien = self.canvas.coords(alien.id)
                 if cord and cord_alien:
-                    print("avant", len(self.fleet.alien_array))
                     distance = math.sqrt(
                         pow((cord[0] - cord_alien[0]), 2)
                         + pow((cord[1] - cord_alien[1]), 2)
@@ -187,10 +183,21 @@ class Game:
                     if distance < 40:
                         self.defender.fired_bullets.remove(bullet)
                         self.canvas.delete(bullet.id)
+                        self.explosion(cord_alien[0], cord_alien[1])
                         self.fleet.alien_array.remove(alien)
                         self.canvas.delete(alien.id)
-                        print("apres", len(self.fleet.alien_array))
+        end = time.time()
+        for value in self.explosions:
+            explosion, start = value
+            if end - start > 0.01:
+                self.explosions.remove(value)
+                self.canvas.delete(explosion)
         self.canvas.after(200, self.colide)
+
+    def explosion(self, x, y):
+        exp = self.canvas.create_image(x, y, image=self.explosion_gif, tags="image")
+        start = time.time()
+        self.explosions.append((exp, start))
 
 
 class SpaceInvaders:
