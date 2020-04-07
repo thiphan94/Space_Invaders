@@ -1,6 +1,10 @@
-import tkinter as tk
 import time
 import math
+
+try:
+    import tkinter as tk
+except:
+    import Tkinter as tk
 
 
 class Alien:
@@ -14,24 +18,19 @@ class Alien:
         self.dy = dy
         self.install_in(canvas, dx, dy)
 
-    def touched_by(self, canvas, projectile):
-        pass
-
     def install_in(self, canvas, dx, dy):
-
-        self.id = canvas.create_image(
-            self.dx + 30, self.dy, image=self.pim, tags="image"
-        )
+        """Valeurs de coordonnées de alien vont changer par rapport input dx, dy à classe Fleet."""
+        self.id = canvas.create_image(dx + 30, dy, image=self.pim, tags="image")
 
     def move_in(self, canvas):
+        """Déplacer un alien en 9 pas, selon direction(1 est de gauche à droite, -1 est en revanche)."""
         canvas.move(self.id, self.direction * 10, 0)
-
         if self.steps == 9:
             self.direction = -self.direction
             self.steps = 0
             canvas.move(self.id, 0, 20)
         self.steps += 1
-        canvas.after(200, self.move_in, canvas)
+        canvas.after(500, self.move_in, canvas)
 
 
 class Fleet:
@@ -43,9 +42,10 @@ class Fleet:
         self.alien_y_delta = 15
         self.alien_array = []
         self.dx = 0
-        self.dy = 50
+        self.dy = 30
 
     def install_in(self, canvas):
+        """Créer la matrice des aliens, on ajouter les aliens au list des aliens."""
         for y in range(0, 5, 1):
             for x in range(0, 10, 1):
                 self.alien_array.append(Alien(canvas, self.dx, self.dy))
@@ -55,13 +55,14 @@ class Fleet:
         self.move_in(canvas)
 
     def move_in(self, canvas):
+        """Parcourir la boucle for pour mouvement de la matrice."""
         for alien in self.alien_array:
             alien.move_in(canvas)
 
     def manage_touched_aliens_by(self, canvas, defender):
+        """Quand la matrice des aliens touche le défender, Défender va perdu."""
         for alien in self.alien_array:
             cord = canvas.coords(alien.id)
-            print("cord", cord[1])
             if cord[1] > 510:
                 canvas.delete(defender)
         canvas.after(100, self.manage_touched_aliens_by, canvas, defender)
@@ -99,8 +100,8 @@ class Defender:
                 time.sleep(0.01)
 
     def fire(self, canvas):
+        """Contrôler le maximum des bullets sur écran."""
         self.update()
-
         if len(self.fired_bullets) < 8:
             bullet = Bullet(canvas.coords(self.id)[0], 0, "shooter")
             bullet.install_in(canvas)
@@ -108,6 +109,7 @@ class Defender:
             self.fired_bullets.append(bullet)
 
     def update(self):
+        """Tester si le bullet n'est pas encore sur écran >> recharger maximum 8 bullets."""
         for bullet in self.fired_bullets:
             if bullet.out_of_sight:
                 self.fired_bullets.remove(bullet)
@@ -130,6 +132,7 @@ class Bullet:
         )
 
     def move_in(self, canvas):
+        """Déplacer le bullet et le supprimer quand  bullet touche bord haut."""
         canvas.move(self.id, 0, -10)
         canvas.update()
         cord = canvas.coords(self.id)
@@ -173,10 +176,8 @@ class Game:
     def start_animation(self):
         self.start()
 
-    def move_bullets(self):
-        pass
-
     def colide(self):
+        """Envisager la distance entre bullet et aliens."""
         for bullet in self.defender.fired_bullets:
             for alien in self.fleet.alien_array:
                 cord = self.canvas.coords(bullet.id)
@@ -201,13 +202,14 @@ class Game:
         self.canvas.after(200, self.colide)
 
     def explosion(self, x, y):
+        """Créer image d'explosions and l'ajouter au liste des explosions."""
         exp = self.canvas.create_image(x, y, image=self.explosion_gif, tags="image")
         start = time.time()
         self.explosions.append((exp, start))
 
 
 class SpaceInvaders:
-    """ Main Game class """
+    """ Main Game class."""
 
     def __init__(self):
         self.root = tk.Tk()
