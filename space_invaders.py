@@ -1,5 +1,6 @@
 import time
 import math
+import random
 
 try:
     import tkinter as tk
@@ -17,6 +18,7 @@ class Alien:
         self.dx = dx
         self.dy = dy
         self.install_in(canvas, dx, dy)
+        self.fired_tir = []
 
     def install_in(self, canvas, dx, dy):
         """Valeurs de coordonnées de alien vont changer par rapport input dx, dy à classe Fleet."""
@@ -31,6 +33,21 @@ class Alien:
             canvas.move(self.id, 0, 20)
         self.steps += 1
         canvas.after(500, self.move_in, canvas)
+
+    def fire(self, canvas):
+        self.update()
+
+        tir = Bullet(canvas.coords(self.id)[0], canvas.coords(self.id)[1], "alien")
+        tir.install_in(canvas)
+        tir.move_down(canvas)
+        self.fired_tir.append(tir)
+        # canvas.after(2000, self.fire, canvas)
+
+    def update(self):
+        """Tester si le bullet n'est pas encore sur écran """
+        for bullet in self.fired_tir:
+            if bullet.tir_out_of_sight:
+                self.fired_tir.remove(bullet)
 
 
 class Fleet:
@@ -53,11 +70,17 @@ class Fleet:
             self.dx = 0
             self.dy += 70
         self.move_in(canvas)
+        self.tir_of_enemies(canvas)
 
     def move_in(self, canvas):
         """Parcourir la boucle for pour mouvement de la matrice."""
         for alien in self.alien_array:
             alien.move_in(canvas)
+
+    def tir_of_enemies(self, canvas):
+        alien_tir = self.alien_array[random.randint(0, len(self.alien_array)) - 1]
+        alien_tir.fire(canvas)
+        canvas.after(1000, self.tir_of_enemies, canvas)
 
     def manage_touched_aliens_by(self, canvas, defender):
         """Quand la matrice des aliens touche le défender, Défender va perdu."""
@@ -116,20 +139,31 @@ class Defender:
 
 
 class Bullet:
-    def __init__(self, x, y, shooter):
+    def __init__(self, x, y, role):
         self.x = x
         self.radius = 5
         self.color = "red"
         self.speed = 8
         self.id = None
-        self.shooter = shooter
+        self.line = None
         self.out_of_sight = False
+        self.tir_out_of_sight = False
         self.y = y
+        self.role = role
 
     def install_in(self, canvas):
-        self.id = canvas.create_oval(
-            self.x + self.radius, 555, self.x + self.radius + 10, 565, fill=self.color
-        )
+        if self.role == "shooter":
+            self.id = canvas.create_oval(
+                self.x + self.radius,
+                555,
+                self.x + self.radius + 10,
+                565,
+                fill=self.color,
+            )
+        else:
+            self.line = canvas.create_line(
+                self.x, self.y + 20, self.x, self.y, fill="red"
+            )
 
     def move_in(self, canvas):
         """Déplacer le bullet et le supprimer quand  bullet touche bord haut."""
@@ -143,6 +177,17 @@ class Bullet:
                 self.out_of_sight = True
                 return
             canvas.after(100, self.move_in, canvas)
+
+    def move_down(self, canvas):
+        canvas.move(self.line, 0, +10)
+        canvas.update()
+        x = canvas.coords(self.line)
+
+        if x[3] >= 570:
+            canvas.delete(self.line)
+            self.tir_out_of_sight = True
+            return
+        canvas.after(100, self.move_down, canvas)
 
 
 # #*********************************
@@ -206,6 +251,11 @@ class Game:
         exp = self.canvas.create_image(x, y, image=self.explosion_gif, tags="image")
         start = time.time()
         self.explosions.append((exp, start))
+
+    # def tir_alien(self):
+    #     alien = self.fleet.alien_array[random.randint(0, len(self.fleet.alien_array)) - 1]
+    #     Bullet.install_in(alien.x, alien.y,"down")
+    # 	self.canvas.after(1000, self.tir_alien)
 
 
 class SpaceInvaders:
