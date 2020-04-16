@@ -2,10 +2,13 @@ import time
 import math
 import random
 
+
 try:
     import tkinter as tk
 except:
     import Tkinter as tk
+
+from tkinter import messagebox
 
 
 class Alien:
@@ -179,15 +182,16 @@ class Bullet:
             canvas.after(100, self.move_in, canvas)
 
     def move_down(self, canvas):
+        """Déplacer le tir et le supprimer quand  tir touche bord bas."""
         canvas.move(self.line, 0, +10)
         canvas.update()
-        x = canvas.coords(self.line)
-
-        if x[3] >= 570:
-            canvas.delete(self.line)
-            self.tir_out_of_sight = True
-            return
-        canvas.after(100, self.move_down, canvas)
+        cord = canvas.coords(self.line)
+        if cord:
+            if cord[3] >= 570:
+                canvas.delete(self.line)
+                self.tir_out_of_sight = True
+                return
+            canvas.after(100, self.move_down, canvas)
 
 
 # #*********************************
@@ -203,11 +207,22 @@ class Game:
         self.fleet = Fleet()
         self.explosions = []
         self.colide()
+        self.colide_tir()
+        # Initialisation le numéro de score = 0
         self.score = 0
+        # Initialisation le numéro de "live" = 0
+        self.live = 0
+        # Créer Label de Score
         self.displayscore = tk.Label(
             self.frame, font=("Minecraft", 15), text="Score : {0}".format(self.score)
         )
         self.displayscore.place(x=5, y=5)
+
+        # Créer Label de Lives
+        self.displaylive = tk.Label(
+            self.frame, font=("Minecraft", 15), text="Lives : {0}/3".format(self.live)
+        )
+        self.displaylive.place(x=700, y=5)
 
     def start(self):
         self.defender.install_in(self.canvas)
@@ -243,7 +258,7 @@ class Game:
                         self.explosion(cord_alien[0], cord_alien[1])
                         self.fleet.alien_array.remove(alien)
                         self.canvas.delete(alien.id)
-                        self.Points(
+                        self.update_point(
                             50
                         )  # quand bullet de défender touche alien, on gagne 50 points
         end = time.time()
@@ -260,11 +275,37 @@ class Game:
         start = time.time()
         self.explosions.append((exp, start))
 
-    def Points(self, pts):
+    def colide_tir(self):
+        """Envisager la distance entre tirs et défender."""
+        for alien in self.fleet.alien_array:
+            for tir in alien.fired_tir:
+                cord = self.canvas.coords(tir.line)
+                cord_defender = self.canvas.coords(self.defender.id)
+                if cord and cord_defender:
+                    distance = math.sqrt(
+                        pow((cord[0] - cord_defender[0]), 2)
+                        + pow((cord[1] - cord_defender[1]), 2)
+                    )
+                    if distance < 30:
+                        alien.fired_tir.remove(tir)
+                        self.canvas.delete(tir.line)
+                        self.update_live(
+                            1
+                        )  # quand tir de alien touche défender, on va perdre 1 'live'
+        self.canvas.after(200, self.colide_tir)
+
+    def update_point(self, pts):
         """Méthode pour mettre à jour les points de défender"""
         self.score += pts
         self.displayscore.config(
             font=("Minecraft", 15), text="Score : {0}".format(self.score)
+        )
+
+    def update_live(self, pts):
+        """Méthode pour mettre à jour les "lives" de défender"""
+        self.live += pts
+        self.displaylive.config(
+            font=("Minecraft", 15), text="Lives : {0}/3".format(self.live)
         )
 
 
