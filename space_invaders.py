@@ -41,7 +41,6 @@ class Alien:
         tir.install_in(canvas)
         tir.move_down(canvas)
         self.fired_tir.append(tir)
-        # canvas.after(2000, self.fire, canvas)
 
     def update(self):
         """Tester si le bullet n'est pas encore sur écran """
@@ -204,6 +203,11 @@ class Game:
         self.fleet = Fleet()
         self.explosions = []
         self.colide()
+        self.score = 0
+        self.displayscore = tk.Label(
+            self.frame, font=("Minecraft", 15), text="Score : {0}".format(self.score)
+        )
+        self.displayscore.place(x=5, y=5)
 
     def start(self):
         self.defender.install_in(self.canvas)
@@ -239,6 +243,9 @@ class Game:
                         self.explosion(cord_alien[0], cord_alien[1])
                         self.fleet.alien_array.remove(alien)
                         self.canvas.delete(alien.id)
+                        self.Points(
+                            50
+                        )  # quand bullet de défender touche alien, on gagne 50 points
         end = time.time()
         for value in self.explosions:
             explosion, start = value
@@ -253,6 +260,13 @@ class Game:
         start = time.time()
         self.explosions.append((exp, start))
 
+    def Points(self, pts):
+        """Méthode pour mettre à jour les points de défender"""
+        self.score += pts
+        self.displayscore.config(
+            font=("Minecraft", 15), text="Score : {0}".format(self.score)
+        )
+
 
 class SpaceInvaders:
     """ Main Game class."""
@@ -265,17 +279,6 @@ class SpaceInvaders:
         self.frame = tk.Frame(self.root, width=width, height=height, bg="green")
         self.frame.pack()
         self.game = Game(self.frame)
-        self.score = int()
-        self.live = int()
-        displayscore = tk.Label(
-            self.root, font=("Minecraft", 15), text="Score : {0}".format(self.score),
-        )
-        displayscore.place(x=5, y=5)
-
-        displaylive = tk.Label(
-            self.root, font=("Minecraft", 15), text="Lives : {0}/3".format(self.live),
-        )
-        displaylive.place(x=710, y=5)
 
     def play(self):
         self.game.start_animation()
