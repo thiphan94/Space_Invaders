@@ -59,7 +59,7 @@ class Fleet:
         self.alien_y_delta = 15
         self.alien_array = []
         self.dx = 0
-        self.dy = 30
+        self.dy = 50
 
     def install_in(self, canvas):
         """Créer la matrice des aliens, on ajouter les aliens au list des aliens."""
@@ -88,6 +88,7 @@ class Fleet:
             cord = canvas.coords(alien.id)
             if cord[1] > 510:
                 canvas.delete(defender)
+
         canvas.after(100, self.manage_touched_aliens_by, canvas, defender)
 
 
@@ -252,11 +253,6 @@ class Game:
         start = time.time()
         self.explosions.append((exp, start))
 
-    # def tir_alien(self):
-    #     alien = self.fleet.alien_array[random.randint(0, len(self.fleet.alien_array)) - 1]
-    #     Bullet.install_in(alien.x, alien.y,"down")
-    # 	self.canvas.after(1000, self.tir_alien)
-
 
 class SpaceInvaders:
     """ Main Game class."""
@@ -269,6 +265,17 @@ class SpaceInvaders:
         self.frame = tk.Frame(self.root, width=width, height=height, bg="green")
         self.frame.pack()
         self.game = Game(self.frame)
+        self.score = int()
+        self.live = int()
+        displayscore = tk.Label(
+            self.root, font=("Minecraft", 15), text="Score : {0}".format(self.score),
+        )
+        displayscore.place(x=5, y=5)
+
+        displaylive = tk.Label(
+            self.root, font=("Minecraft", 15), text="Lives : {0}/3".format(self.live),
+        )
+        displaylive.place(x=710, y=5)
 
     def play(self):
         self.game.start_animation()
