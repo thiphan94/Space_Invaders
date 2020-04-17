@@ -194,6 +194,47 @@ class Bullet:
             canvas.after(100, self.move_down, canvas)
 
 
+# les  bunkers de défender
+class Bunkers:
+    cpt = 0  # compteur de nombre de petit bunker dans bunkers dans game, initialisation = 0
+    cpt_row = 0
+
+    def __init__(self):
+        self.id = None
+        self.compteur = Bunkers.cpt
+        self.dx = 70
+        self.dy = 490
+        self.bunkers_array = []
+
+    def install_in(self, canvas):
+        """Créer la matrice des aliens, on ajouter les aliens au list des aliens."""
+        while self.dy <= 530:
+            while self.dx <= 750:
+                self.id = canvas.create_rectangle(
+                    self.dx,
+                    self.dy,
+                    self.dx + 20,
+                    self.dy + 20,
+                    outline="purple",
+                    fill="grey",
+                )
+                self.bunkers_array.append(self.id)
+                self.dx += 20
+                self.compteur += 1
+                if self.compteur == 3:
+                    self.dx += 140
+                    self.compteur = 0
+
+            self.dx = 70
+            self.dy += 20
+
+    def Update(self):
+        pass
+
+    def Destruction(self):
+        pass
+
+
 # #*********************************
 class Game:
     def __init__(self, frame):
@@ -205,6 +246,7 @@ class Game:
         self.explosion_gif = tk.PhotoImage(file="explosion.gif")
         self.defender = Defender()
         self.fleet = Fleet()
+        self.bunker = Bunkers()
         self.explosions = []
         self.colide()
         self.colide_tir()
@@ -227,6 +269,7 @@ class Game:
     def start(self):
         self.defender.install_in(self.canvas)
         self.fleet.install_in(self.canvas)
+        self.bunker.install_in(self.canvas)
         self.fleet.manage_touched_aliens_by(self.canvas, self.defender.id)
         self.frame.winfo_toplevel().bind("<Key>", self.keypress)
 
