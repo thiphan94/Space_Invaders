@@ -200,7 +200,6 @@ class Bunkers:
     cpt_row = 0
 
     def __init__(self):
-        self.id = None
         self.compteur = Bunkers.cpt
         self.dx = 70
         self.dy = 490
@@ -210,15 +209,16 @@ class Bunkers:
         """Créer la matrice des aliens, on ajouter les aliens au list des aliens."""
         while self.dy <= 530:
             while self.dx <= 750:
-                self.id = canvas.create_rectangle(
-                    self.dx,
-                    self.dy,
-                    self.dx + 20,
-                    self.dy + 20,
-                    outline="purple",
-                    fill="grey",
+                self.bunkers_array.append(
+                    canvas.create_rectangle(
+                        self.dx,
+                        self.dy,
+                        self.dx + 20,
+                        self.dy + 20,
+                        outline="purple",
+                        fill="grey",
+                    )
                 )
-                self.bunkers_array.append(self.id)
                 self.dx += 20
                 self.compteur += 1
                 if self.compteur == 3:
@@ -227,12 +227,6 @@ class Bunkers:
 
             self.dx = 70
             self.dy += 20
-
-    def Update(self):
-        pass
-
-    def Destruction(self):
-        pass
 
 
 # #*********************************
@@ -250,6 +244,7 @@ class Game:
         self.explosions = []
         self.colide()
         self.colide_tir()
+        self.colide_bunker()
         # Initialisation le numéro de score = 0
         self.score = 0
         # Initialisation le numéro de "live" = 0
@@ -352,6 +347,42 @@ class Game:
         self.displaylive.config(
             font=("Minecraft", 15), text="Lives : {0}/3".format(self.live)
         )
+
+    def colide_bunker(self):
+        """Envisager la distance entre tirs et bunkers."""
+        # for alien in self.fleet.alien_array:
+        #     for tir in alien.fired_tir:
+        #         for bunker in self.bunker.bunkers_array:
+        #             cord = self.canvas.coords(tir.line)
+        #             cord_bunker = self.canvas.coords(self.bunker.id)
+        #             if cord and cord_bunker:
+        #                 distance = math.sqrt(
+        #                     pow((cord[0] - cord_bunker[0]), 2)
+        #                     + pow((cord[1] - cord_bunker[1]), 2)
+        #                 )
+        #                 print(distance)
+        #                 if distance < 200:
+        #                     alien.fired_tir.remove(tir)
+        #                     self.canvas.delete(tir.line)
+        #                     self.bunker.bunkers_array.remove(bunker)
+        #                     self.canvas.delete(self.bunker.id)
+
+        # Envisager la distance entre bullets et bunkers.
+        for bullet in self.defender.fired_bullets:
+            for bunker in self.bunker.bunkers_array:
+                cord = self.canvas.coords(bullet.id)
+                cord_bunker = self.canvas.coords(bunker)
+                if cord and cord_bunker:
+                    distance = math.sqrt(
+                        pow((cord[0] - cord_bunker[0]), 2)
+                        + pow((cord[1] - cord_bunker[1]), 2)
+                    )
+                    if distance < 10:
+                        self.defender.fired_bullets.remove(bullet)
+                        self.canvas.delete(bullet.id)
+                        self.bunker.bunkers_array.remove(bunker)
+                        self.canvas.delete(bunker)
+        self.canvas.after(200, self.colide_bunker)
 
 
 class SpaceInvaders:
