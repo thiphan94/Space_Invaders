@@ -35,15 +35,16 @@ class Alien:
             self.steps = 0
             canvas.move(self.id, 0, 20)
         self.steps += 1
-        canvas.after(500, self.move_in, canvas)
+        canvas.after(100, self.move_in, canvas)
 
     def fire(self, canvas):
         self.update()
-
-        tir = Bullet(canvas.coords(self.id)[0], canvas.coords(self.id)[1], "alien")
-        tir.install_in(canvas)
-        tir.move_down(canvas)
-        self.fired_tir.append(tir)
+        coord = canvas.coords(self.id)
+        if coord:
+            tir = Bullet(coord[0], coord[1], "alien")
+            tir.install_in(canvas)
+            tir.move_down(canvas)
+            self.fired_tir.append(tir)
 
     def update(self):
         """Tester si le bullet n'est pas encore sur écran """
@@ -72,7 +73,8 @@ class Fleet:
             self.dx = 0
             self.dy += 70
         self.move_in(canvas)
-        self.tir_of_enemies(canvas)
+        if self.alien_array:
+            self.tir_of_enemies(canvas)
 
     def move_in(self, canvas):
         """Parcourir la boucle for pour mouvement de la matrice."""
@@ -80,6 +82,7 @@ class Fleet:
             alien.move_in(canvas)
 
     def tir_of_enemies(self, canvas):
+
         alien_tir = self.alien_array[random.randint(0, len(self.alien_array)) - 1]
         alien_tir.fire(canvas)
         canvas.after(1000, self.tir_of_enemies, canvas)
@@ -87,9 +90,13 @@ class Fleet:
     def manage_touched_aliens_by(self, canvas, defender):
         """Quand la matrice des aliens touche le défender, Défender va perdu."""
         for alien in self.alien_array:
-            cord = canvas.coords(alien.id)
-            if cord[1] > 510:
-                canvas.delete(defender)
+            coord = canvas.coords(alien.id)
+            if coord:
+                if coord[1] > 500:
+                    canvas.create_text(
+                        320, 240, font=("Fixedsys", 18), text="Game Over !!", fill="red"
+                    )
+                    canvas.delete("all")
 
         canvas.after(100, self.manage_touched_aliens_by, canvas, defender)
 
@@ -172,10 +179,10 @@ class Bullet:
         """Déplacer le bullet et le supprimer quand  bullet touche bord haut."""
         canvas.move(self.id, 0, -10)
         canvas.update()
-        cord = canvas.coords(self.id)
+        coord = canvas.coords(self.id)
 
-        if cord:
-            if cord[3] < 10:
+        if coord:
+            if coord[3] < 10:
                 canvas.delete(self.id)
                 self.out_of_sight = True
                 return
@@ -185,9 +192,9 @@ class Bullet:
         """Déplacer le tir et le supprimer quand  tir touche bord bas."""
         canvas.move(self.line, 0, +10)
         canvas.update()
-        cord = canvas.coords(self.line)
-        if cord:
-            if cord[3] >= 570:
+        coord = canvas.coords(self.line)
+        if coord:
+            if coord[3] >= 570:
                 canvas.delete(self.line)
                 self.tir_out_of_sight = True
                 return
@@ -284,17 +291,17 @@ class Game:
         """Envisager la distance entre bullet et aliens."""
         for bullet in self.defender.fired_bullets:
             for alien in self.fleet.alien_array:
-                cord = self.canvas.coords(bullet.id)
-                cord_alien = self.canvas.coords(alien.id)
-                if cord and cord_alien:
+                coord = self.canvas.coords(bullet.id)
+                coord_alien = self.canvas.coords(alien.id)
+                if coord and coord_alien:
                     distance = math.sqrt(
-                        pow((cord[0] - cord_alien[0]), 2)
-                        + pow((cord[1] - cord_alien[1]), 2)
+                        pow((coord[0] - coord_alien[0]), 2)
+                        + pow((coord[1] - coord_alien[1]), 2)
                     )
                     if distance < 40:
                         self.defender.fired_bullets.remove(bullet)
                         self.canvas.delete(bullet.id)
-                        self.explosion(cord_alien[0], cord_alien[1])
+                        self.explosion(coord_alien[0], coord_alien[1])
                         self.fleet.alien_array.remove(alien)
                         self.canvas.delete(alien.id)
                         self.update_point(
@@ -318,12 +325,12 @@ class Game:
         """Envisager la distance entre tirs et défender."""
         for alien in self.fleet.alien_array:
             for tir in alien.fired_tir:
-                cord = self.canvas.coords(tir.line)
-                cord_defender = self.canvas.coords(self.defender.id)
-                if cord and cord_defender:
+                coord = self.canvas.coords(tir.line)
+                coord_defender = self.canvas.coords(self.defender.id)
+                if coord and coord_defender:
                     distance = math.sqrt(
-                        pow((cord[0] - cord_defender[0]), 2)
-                        + pow((cord[1] - cord_defender[1]), 2)
+                        pow((coord[0] - coord_defender[0]), 2)
+                        + pow((coord[1] - coord_defender[1]), 2)
                     )
                     if distance < 30:
                         alien.fired_tir.remove(tir)
@@ -353,12 +360,12 @@ class Game:
         """Envisager la distance entre bullets et bunkers."""
         for bullet in self.defender.fired_bullets:
             for bunker in self.bunker.bunkers_array:
-                cord = self.canvas.coords(bullet.id)
-                cord_bunker = self.canvas.coords(bunker)
-                if cord and cord_bunker:
+                coord = self.canvas.coords(bullet.id)
+                coord_bunker = self.canvas.coords(bunker)
+                if coord and coord_bunker:
                     distance = math.sqrt(
-                        pow((cord[0] - cord_bunker[0]), 2)
-                        + pow((cord[1] - cord_bunker[1]), 2)
+                        pow((coord[0] - coord_bunker[0]), 2)
+                        + pow((coord[1] - coord_bunker[1]), 2)
                     )
                     if distance < 10:
                         self.defender.fired_bullets.remove(bullet)
@@ -372,12 +379,12 @@ class Game:
         for alien in self.fleet.alien_array:
             for tir in alien.fired_tir:
                 for bunker in self.bunker.bunkers_array:
-                    cord = self.canvas.coords(tir.line)
-                    cord_bunker = self.canvas.coords(bunker)
-                    if cord and cord_bunker:
+                    coord = self.canvas.coords(tir.line)
+                    coord_bunker = self.canvas.coords(bunker)
+                    if coord and coord_bunker:
                         distance = math.sqrt(
-                            pow((cord[0] - cord_bunker[0]), 2)
-                            + pow((cord[1] - cord_bunker[1]), 2)
+                            pow((coord[0] - coord_bunker[0]), 2)
+                            + pow((coord[1] - coord_bunker[1]), 2)
                         )
                         if distance < 20:
                             alien.fired_tir.remove(tir)
