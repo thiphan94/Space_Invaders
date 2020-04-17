@@ -292,6 +292,8 @@ class Game:
                         self.update_live(
                             1
                         )  # quand tir de alien touche défender, on va perdre 1 'live'
+                        if self.live == 3:  # si défender est tué 3 fois, il va perdre.
+                            self.canvas.delete(self.defender.id)
         self.canvas.after(200, self.colide_tir)
 
     def update_point(self, pts):
