@@ -35,7 +35,7 @@ class Alien:
             self.steps = 0
             canvas.move(self.id, 0, 20)
         self.steps += 1
-        canvas.after(100, self.move_in, canvas)
+        canvas.after(500, self.move_in, canvas)
 
     def fire(self, canvas):
         self.update()
@@ -63,6 +63,7 @@ class Fleet:
         self.alien_array = []
         self.dx = 0
         self.dy = 50
+        self.photo = tk.PhotoImage(file="gameover.gif")
 
     def install_in(self, canvas):
         """Créer la matrice des aliens, on ajouter les aliens au list des aliens."""
@@ -92,12 +93,14 @@ class Fleet:
         for alien in self.alien_array:
             coord = canvas.coords(alien.id)
             if coord:
-                if coord[1] > 500:
-                    canvas.create_text(
-                        320, 240, font=("Fixedsys", 18), text="Game Over !!", fill="red"
-                    )
+                if coord[1] > 510:
                     canvas.delete("all")
-
+                    exp = canvas.create_image(
+                        0, 0, image=self.photo, tags="image", anchor="nw"
+                    )
+                    canvas.create_text(
+                        370, 300, font=("MS Serif", 30), text="GAME OVER !", fill="red"
+                    )
         canvas.after(100, self.manage_touched_aliens_by, canvas, defender)
 
 
@@ -135,7 +138,8 @@ class Defender:
     def fire(self, canvas):
         """Contrôler le maximum des bullets sur écran."""
         self.update()
-        if len(self.fired_bullets) < 8:
+        coord = canvas.coords(self.id)
+        if len(self.fired_bullets) < 8 and coord:
             bullet = Bullet(canvas.coords(self.id)[0], 0, "shooter")
             bullet.install_in(canvas)
             bullet.move_in(canvas)
@@ -236,7 +240,7 @@ class Bunkers:
             self.dy += 20
 
 
-# #*********************************
+# #****************************************************************
 class Game:
     def __init__(self, frame):
         width = 800
@@ -402,6 +406,9 @@ class SpaceInvaders:
         self.root.title("Space Invaders")
         width = 800
         height = 600
+        self.root.geometry(
+            "800x600+500+50"
+        )  # quand je run code avec Powershell, l'écran de game va être à droit
         self.frame = tk.Frame(self.root, width=width, height=height, bg="green")
         self.frame.pack()
         self.game = Game(self.frame)
