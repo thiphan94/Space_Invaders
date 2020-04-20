@@ -1,7 +1,7 @@
 import time
 import math
 import random
-
+import json
 
 try:
     import tkinter as tk
@@ -240,6 +240,72 @@ class Bunkers:
             self.dy += 20
 
 
+class Score:
+    def __init__(self, nom, points):
+        self.nom = nom
+        self.points = points
+
+    def toFile(self, fich):
+        f = open(fich, "w")
+        l = self
+        json.dump(l.__dict__, f)
+        f.close()
+
+    @classmethod
+    def fromFile(cls, fich):
+        f = open(fich, "r")
+        d = json.load(f)
+        lnew = Score(d["nom"], d["points"])
+        f.close()
+        return lnew
+
+    def __str__(self):
+        return "[" + self.nom + "," + str(self.points) + "]"
+
+
+class Resultat:
+    def __init__(self):
+        self.players = []
+
+    def ajout(self, livre):
+        self.players.append(livre)
+
+    def __str__(self):
+        chaine = str(self.players[0])
+        for e in self.players[1:]:
+            chaine = chaine + "," + str(e)
+        return chaine
+
+    @classmethod
+    def fromFile(cls, fich):
+        f = open(fich, "r")
+        # chargement
+        tmp = json.load(f)
+
+        liste = []
+        for d in tmp:
+            # créer un livre
+            l = Score(d["nom"], d["points"])
+            # l'ajouter dans la liste
+            liste.append(l)
+        lib = Resultat()
+        lib.players = liste
+        f.close()
+        return lib
+
+    def toFile(self, fich):
+        f = open(fich, "w")
+        tmp = []
+        for l in self.players:
+            # créer un dictionnaire
+            d = {}
+            d["nom"] = l.nom
+            d["points"] = l.points
+            tmp.append(d)
+        json.dump(tmp, f)
+        f.close()
+
+
 # #****************************************************************
 class Game:
     def __init__(self, frame):
@@ -343,19 +409,10 @@ class Game:
                         self.update_live(
                             1
                         )  # quand tir de alien touche défender, on va perdre 1 'live'
-                        if self.live == 3:  # si défender est tué 3 fois, il va perdre.
-                            self.canvas.delete(self.defender.id)
-                            self.canvas.delete("all")
-                            exp = self.canvas.create_image(
-                                0, 0, image=self.photo, tags="image", anchor="nw"
-                            )
-                            text = self.canvas.create_text(
-                                370,
-                                300,
-                                font=("MS Serif", 30),
-                                text="You died !",
-                                fill="red",
-                            )
+                        if (
+                            self.live == 3
+                        ):  # quand joueur mort , on appelle méthode delete_all
+                            self.delete_all()
         self.canvas.after(200, self.colide_tir)
 
     def update_point(self, pts):
@@ -408,6 +465,44 @@ class Game:
                             self.bunker.bunkers_array.remove(bunker)
                             self.canvas.delete(bunker)
         self.canvas.after(200, self.colide_bunker2)
+
+    def get_name(self):
+        """Méthode pour prendre valeur de joueur pour écrire au fichier """
+        label1 = tk.Label(self.frame, text="Type your Name:")
+        label1.config(font=("helvetica", 14))
+        self.canvas.create_window(400, 120, window=label1)
+
+        entry1 = tk.Entry(self.frame)
+        self.canvas.create_window(400, 170, window=entry1)
+
+        def print_score():
+            nom = entry1.get()
+            abc = Score(nom, self.score)
+            abc.toFile("player.json")
+            label3 = tk.Label(self.frame, text=abc.__str__())
+            label3.config(font=("helvetica", 15))
+            self.canvas.create_window(400, 250, window=label3)
+
+        button1 = tk.Button(
+            text="Score",
+            command=print_score,
+            bg="brown",
+            fg="white",
+            font=("helvetica", 13, "bold"),
+        )
+        self.canvas.create_window(400, 200, window=button1)
+
+    def delete_all(self):
+        """Méthode pour delete all quand le joueur est mort """
+        self.canvas.delete(self.defender.id)
+        self.canvas.delete("all")
+        exp = self.canvas.create_image(
+            0, 0, image=self.photo, tags="image", anchor="nw"
+        )
+        text = self.canvas.create_text(
+            400, 300, font=("MS Serif", 30), text="You died !", fill="red",
+        )
+        self.get_name()
 
 
 class SpaceInvaders:
