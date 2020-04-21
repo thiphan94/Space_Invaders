@@ -105,6 +105,7 @@ class Defender:
         self.displace = 0
 
     def install_in(self, canvas):
+        """Création de défender."""
         lx = 400 + self.width / 2
         ly = 600 - self.height - 10
         self.id = canvas.create_rectangle(
@@ -112,6 +113,7 @@ class Defender:
         )
 
     def move_in(self, canvas, direction):
+        """Mouvement de défender."""
         if direction == "left":
             if self.displace >= -400:
                 self.displace -= 10
@@ -143,11 +145,14 @@ class Defender:
 
 
 class Bullet:
+    """Class pour créer bullet de défender et tirs des aliens."""
+
     def __init__(self, x, y, role):
+        """Des attributes pour créer des bullets et des tirs."""
         self.x = x
         self.radius = 5
         self.color = "red"
-        self.speed = 8
+        self.speed = 10
         self.id = None
         self.line = None
         self.out_of_sight = False
@@ -156,6 +161,7 @@ class Bullet:
         self.role = role
 
     def install_in(self, canvas):
+        """Création des bullets et des tirs."""
         if self.role == "shooter":
             self.id = canvas.create_oval(
                 self.x + self.radius,
@@ -171,7 +177,7 @@ class Bullet:
 
     def move_in(self, canvas):
         """Déplacer le bullet et le supprimer quand  bullet touche bord haut."""
-        canvas.move(self.id, 0, -10)
+        canvas.move(self.id, 0, -self.speed)
         canvas.update()
         coord = canvas.coords(self.id)
 
@@ -184,7 +190,7 @@ class Bullet:
 
     def move_down(self, canvas):
         """Déplacer le tir et le supprimer quand  tir touche bord bas."""
-        canvas.move(self.line, 0, +10)
+        canvas.move(self.line, 0, +self.speed)
         canvas.update()
         coord = canvas.coords(self.line)
         if coord:
@@ -202,6 +208,7 @@ class Bunkers:
     cpt_row = 0
 
     def __init__(self):
+        """création liste des bunkers au début."""
         self.compteur = Bunkers.cpt
         self.dx = 70
         self.dy = 490
@@ -235,10 +242,12 @@ class Score:
     """Class pour stocker nom + score de joueur"""
 
     def __init__(self, nom, points):
+        """Deux attributes de Class."""
         self.nom = nom
         self.points = points
 
     def toFile(self, fich):
+        """Mode de écrire au fichier."""
         f = open(fich, "w")
         l = self
         json.dump(l.__dict__, f)
@@ -246,6 +255,7 @@ class Score:
 
     @classmethod
     def fromFile(cls, fich):
+        """Mode de lecture à partir de fichier."""
         f = open(fich, "r")
         d = json.load(f)
         lnew = Score(d["nom"], d["points"])
@@ -253,30 +263,33 @@ class Score:
         return lnew
 
     def __str__(self):
+        """Affichage de résultat."""
         return "[" + self.nom + "," + str(self.points) + "]"
 
 
 class Resultat:
-    """Class pour stocker plusieurs noms + scores des playeurs"""
+    """Class pour stocker plusieurs noms + scores des playeurs."""
 
     def __init__(self):
+        """Créer liste des playeurs."""
         self.players = []
 
-    def ajout(self, livre):
-        self.players.append(livre)
+    def ajout(self, player):
+        """Méthode pour ajouter un nouveau player."""
+        self.players.append(player)
 
     def __str__(self):
-
+        """Affichage le dictionnaire au string."""
         self.players.sort(key=operator.attrgetter("points"), reverse=True)
         chaine = str(self.players[0])
-        for i in self.players[
-            1:9
-        ]:  # pour afficher high score mais pas beaucoup , que 9 personnes
+        for i in self.players[1:9]:
+            # pour afficher high score mais pas beaucoup , que 9 personnes
             chaine = chaine + "\n" + str(i)
         return chaine
 
     @classmethod
     def fromFile(cls, fich):
+        """Mode de lecture à partir un fichier."""
         f = open(fich, "r")
         # chargement
         tmp = json.load(f)
@@ -292,6 +305,7 @@ class Resultat:
         return lib
 
     def toFile(self, fich):
+        """Mode d'écrire au fichier."""
         f = open(fich, "w")
         tmp = []
         for l in self.players:
@@ -306,7 +320,10 @@ class Resultat:
 
 # #****************************************************************
 class Game:
+    """Class pour mettre en lien tous les autres class."""
+
     def __init__(self, frame):
+        """Définir les bases de game et appeler les autres méthodes."""
         width = 800
         height = 600
         self.frame = frame
@@ -340,12 +357,14 @@ class Game:
         self.displaylive.place(x=700, y=5)
 
     def start(self):
+        """Commencer à créer défender, aliens, bunkers."""
         self.defender.install_in(self.canvas)
         self.fleet.install_in(self.canvas)
         self.bunker.install_in(self.canvas)
         self.frame.winfo_toplevel().bind("<Key>", self.keypress)
 
     def keypress(self, event):
+        """Méthode pour mettre en lien les keyboards et les class."""
         if event.keysym == "Left":
             self.defender.move_in(self.canvas, "left")
         if event.keysym == "Right":
@@ -354,6 +373,7 @@ class Game:
             self.defender.fire(self.canvas)
 
     def start_animation(self):
+        """Appeler la création des bases au méthode start()."""
         self.start()
 
     def colide(self):
@@ -408,9 +428,8 @@ class Game:
                         self.update_live(
                             1
                         )  # quand tir de alien touche défender, on va perdre 1 'live'
-                        if (
-                            self.live == 3
-                        ):  # quand joueur mort , on appelle méthode delete_all
+                        if self.live == 3:
+                            # quand joueur mort , on appelle méthode delete_all
                             self.delete_all()
         self.canvas.after(200, self.colide_tir)
 
@@ -422,7 +441,7 @@ class Game:
         )
 
     def update_live(self, pts):
-        """Méthode pour mettre à jour les "lives" de défender"""
+        """Méthode pour mettre à jour les "lives" de défender."""
         self.live += pts
         self.displaylive.config(
             font=("Minecraft", 15), text="Lives : {0}/3".format(self.live)
@@ -475,7 +494,7 @@ class Game:
         self.canvas.after(100, self.manage_touched_aliens_by)
 
     def get_name(self):
-        """Méthode pour prendre valeur de joueur pour écrire au fichier """
+        """Méthode pour prendre valeur de joueur pour écrire au fichier."""
         label1 = tk.Label(self.frame, text="Type your Name:")
         label1.config(font=("helvetica", 14))
         self.canvas.create_window(400, 120, window=label1)
@@ -515,7 +534,7 @@ class Game:
         self.canvas.create_window(400, 200, window=button1)
 
     def delete_all(self):
-        """Méthode pour delete all quand le joueur est mort """
+        """Méthode pour delete all quand le joueur est mort."""
         self.canvas.delete(self.defender.id)
         self.canvas.delete("all")
         self.canvas.create_image(0, 0, image=self.photo, tags="image", anchor="nw")
@@ -525,6 +544,7 @@ class Game:
         self.get_name()
 
     def win(self):
+        """Méthode pour affichage quand joueur gagne."""
         self.canvas.delete(self.defender.id)
         self.canvas.delete("all")
         self.canvas.create_image(0, 0, image=self.photo, tags="image", anchor="nw")
@@ -534,6 +554,7 @@ class Game:
         self.get_name()
 
     def check(self):
+        """Méthode pour vérifier si les aliens sont tous tués."""
         if not self.fleet.alien_array:
             self.win()
 
@@ -542,6 +563,7 @@ class SpaceInvaders:
     """ Main Game class."""
 
     def __init__(self):
+        """Création frame et titre du jeu."""
         self.root = tk.Tk()
         self.root.title("Space Invaders")
         width = 800
@@ -554,6 +576,7 @@ class SpaceInvaders:
         self.game = Game(self.frame)
 
     def play(self):
+        """Méthode pour commmencer le jeu."""
         self.game.start_animation()
         self.root.mainloop()
 
