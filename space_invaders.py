@@ -331,6 +331,7 @@ class Game:
         self.canvas.pack(side="top", fill="both", expand=True)
         self.explosion_gif = tk.PhotoImage(file="explosion.gif")
         self.photo = tk.PhotoImage(file="gameover.gif")
+        self.ecran = tk.PhotoImage(file="nasa.gif")
         self.defender = Defender()
         self.fleet = Fleet()
         self.bunker = Bunkers()
@@ -358,6 +359,7 @@ class Game:
 
     def start(self):
         """Commencer à créer défender, aliens, bunkers."""
+        self.canvas.create_image(0, 0, image=self.ecran, tags="image", anchor="nw")
         self.defender.install_in(self.canvas)
         self.fleet.install_in(self.canvas)
         self.bunker.install_in(self.canvas)
