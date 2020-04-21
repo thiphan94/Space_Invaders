@@ -2,6 +2,7 @@ import time
 import math
 import random
 import json
+import operator
 
 try:
     import tkinter as tk
@@ -88,20 +89,20 @@ class Fleet:
         alien_tir.fire(canvas)
         canvas.after(1000, self.tir_of_enemies, canvas)
 
-    def manage_touched_aliens_by(self, canvas, defender):
-        """Quand la matrice des aliens touche le défender, Défender va perdu."""
-        for alien in self.alien_array:
-            coord = canvas.coords(alien.id)
-            if coord:
-                if coord[1] > 510:
-                    canvas.delete("all")
-                    exp = canvas.create_image(
-                        0, 0, image=self.photo, tags="image", anchor="nw"
-                    )
-                    canvas.create_text(
-                        370, 300, font=("MS Serif", 30), text="GAME OVER !", fill="red"
-                    )
-        canvas.after(100, self.manage_touched_aliens_by, canvas, defender)
+    # def manage_touched_aliens_by(self, canvas, defender):
+    #     """Quand la matrice des aliens touche le défender, Défender va perdu."""
+    #     for alien in self.alien_array:
+    #         coord = canvas.coords(alien.id)
+    #         if coord:
+    #             if coord[1] > 510:
+    #                 canvas.delete("all")
+    #                 exp = canvas.create_image(
+    #                     0, 0, image=self.photo, tags="image", anchor="nw"
+    #                 )
+    #                 canvas.create_text(
+    #                     370, 300, font=("MS Serif", 30), text="GAME OVER !", fill="red"
+    #                 )
+    #     canvas.after(100, self.manage_touched_aliens_by, canvas, defender)
 
 
 class Defender:
@@ -240,7 +241,7 @@ class Bunkers:
             self.dy += 20
 
 
-class Score:
+class Score(object):
     def __init__(self, nom, points):
         self.nom = nom
         self.points = points
@@ -263,7 +264,7 @@ class Score:
         return "[" + self.nom + "," + str(self.points) + "]"
 
 
-class Resultat:
+class Resultat(object):
     def __init__(self):
         self.players = []
 
@@ -271,9 +272,13 @@ class Resultat:
         self.players.append(livre)
 
     def __str__(self):
+
+        self.players.sort(key=operator.attrgetter("points"), reverse=True)
         chaine = str(self.players[0])
-        for e in self.players[1:]:
-            chaine = chaine + "," + str(e)
+        for e in self.players[
+            1:9
+        ]:  # pour afficher high score mais pas beaucoup , que 9 personnes
+            chaine = chaine + "\n" + str(e)
         return chaine
 
     @classmethod
@@ -281,7 +286,6 @@ class Resultat:
         f = open(fich, "r")
         # chargement
         tmp = json.load(f)
-
         liste = []
         for d in tmp:
             # créer un livre
@@ -324,6 +328,7 @@ class Game:
         self.colide_tir()
         self.colide_bunker()
         self.colide_bunker2()
+        self.manage_touched_aliens_by()
         # Initialisation le numéro de score = 0
         self.score = 0
         # Initialisation le numéro de "live" = 0
@@ -333,7 +338,6 @@ class Game:
             self.frame, font=("Minecraft", 15), text="Score : {0}".format(self.score)
         )
         self.displayscore.place(x=5, y=5)
-
         # Créer Label de Lives
         self.displaylive = tk.Label(
             self.frame, font=("Minecraft", 15), text="Lives : {0}/3".format(self.live)
@@ -344,7 +348,7 @@ class Game:
         self.defender.install_in(self.canvas)
         self.fleet.install_in(self.canvas)
         self.bunker.install_in(self.canvas)
-        self.fleet.manage_touched_aliens_by(self.canvas, self.defender.id)
+        # self.fleet.manage_touched_aliens_by(self.canvas, self.defender.id)
         self.frame.winfo_toplevel().bind("<Key>", self.keypress)
 
     def keypress(self, event):
@@ -466,6 +470,15 @@ class Game:
                             self.canvas.delete(bunker)
         self.canvas.after(200, self.colide_bunker2)
 
+    def manage_touched_aliens_by(self):
+        """Quand la matrice des aliens touche le défender, Défender va perdu."""
+        for alien in self.fleet.alien_array:
+            coord = self.canvas.coords(alien.id)
+            if coord:
+                if coord[1] > 510:
+                    self.delete_all()
+        self.canvas.after(100, self.manage_touched_aliens_by)
+
     def get_name(self):
         """Méthode pour prendre valeur de joueur pour écrire au fichier """
         label1 = tk.Label(self.frame, text="Type your Name:")
@@ -479,9 +492,23 @@ class Game:
             nom = entry1.get()
             abc = Score(nom, self.score)
             abc.toFile("player.json")
-            label3 = tk.Label(self.frame, text=abc.__str__())
+            libN = Resultat.fromFile("players.json")
+            new = abc
+            libN.ajout(new)
+            libN.toFile("players.json")
+            libN2 = Resultat.fromFile("players.json")
+
+            label3 = tk.Label(self.frame, text="Player with score: " + abc.__str__())
             label3.config(font=("helvetica", 15))
             self.canvas.create_window(400, 250, window=label3)
+
+            label4 = tk.Label(self.frame, text="HIGH SCORE:")
+            label4.config(font=("helvetica", 16))
+            self.canvas.create_window(400, 370, window=label4)
+
+            label5 = tk.Label(self.frame, text=libN2.__str__())
+            label5.config(font=("helvetica", 10))
+            self.canvas.create_window(400, 500, window=label5)
 
         button1 = tk.Button(
             text="Score",
