@@ -4,18 +4,19 @@ import random
 import json
 import operator
 
+
 try:
     import tkinter as tk
-except:
+except ImportError:
     import Tkinter as tk
-
-from tkinter import messagebox
 
 
 class Alien:
+    """Class pour créer un alien."""
+
     def __init__(self, canvas, dx, dy):
+        """Image d'alien et les attributes pour déplacer un alien."""
         self.id = None
-        self.alive = True
         self.pim = tk.PhotoImage(file="alien.gif")
         self.steps = 0
         self.direction = 1
@@ -39,6 +40,7 @@ class Alien:
         canvas.after(500, self.move_in, canvas)
 
     def fire(self, canvas):
+        """Méthode pour tirer un bullet d'alien."""
         self.update()
         coord = canvas.coords(self.id)
         if coord:
@@ -48,28 +50,27 @@ class Alien:
             self.fired_tir.append(tir)
 
     def update(self):
-        """Tester si le bullet n'est pas encore sur écran """
+        """Tester si le bullet n'est pas encore sur écran."""
         for bullet in self.fired_tir:
             if bullet.tir_out_of_sight:
                 self.fired_tir.remove(bullet)
 
 
 class Fleet:
+    """Class pour créer une matrice des aliens."""
+
     def __init__(self):
+        """Mettre des attributes pour déplacer la matrice."""
         self.aliens_lines = 5
         self.aliens_columns = 10
-        self.aliens_inner_gap = 20
-        self.alien_x_delta = 5
-        self.alien_y_delta = 15
         self.alien_array = []
         self.dx = 0
         self.dy = 50
-        self.photo = tk.PhotoImage(file="gameover.gif")
 
     def install_in(self, canvas):
         """Créer la matrice des aliens, on ajouter les aliens au list des aliens."""
-        for y in range(0, 5, 1):
-            for x in range(0, 10, 1):
+        for y in range(0, self.aliens_lines, 1):
+            for x in range(0, self.aliens_columns, 1):
                 self.alien_array.append(Alien(canvas, self.dx, self.dy))
                 self.dx += 70
             self.dx = 0
@@ -84,32 +85,20 @@ class Fleet:
             alien.move_in(canvas)
 
     def tir_of_enemies(self, canvas):
-
-        alien_tir = self.alien_array[random.randint(0, len(self.alien_array)) - 1]
-        alien_tir.fire(canvas)
+        """Choissir random un alien dans matrice pour tirer."""
+        if self.alien_array:
+            alien_tir = self.alien_array[random.randint(0, len(self.alien_array)) - 1]
+            alien_tir.fire(canvas)
         canvas.after(1000, self.tir_of_enemies, canvas)
-
-    # def manage_touched_aliens_by(self, canvas, defender):
-    #     """Quand la matrice des aliens touche le défender, Défender va perdu."""
-    #     for alien in self.alien_array:
-    #         coord = canvas.coords(alien.id)
-    #         if coord:
-    #             if coord[1] > 510:
-    #                 canvas.delete("all")
-    #                 exp = canvas.create_image(
-    #                     0, 0, image=self.photo, tags="image", anchor="nw"
-    #                 )
-    #                 canvas.create_text(
-    #                     370, 300, font=("MS Serif", 30), text="GAME OVER !", fill="red"
-    #                 )
-    #     canvas.after(100, self.manage_touched_aliens_by, canvas, defender)
 
 
 class Defender:
+    """Class pour définir un défender."""
+
     def __init__(self):
+        """Méthode pour définir des attributes."""
         self.width = 20
         self.height = 20
-        self.move_delta = 20
         self.id = None
         self.max_fired_bullets = 8
         self.fired_bullets = []
@@ -140,7 +129,7 @@ class Defender:
         """Contrôler le maximum des bullets sur écran."""
         self.update()
         coord = canvas.coords(self.id)
-        if len(self.fired_bullets) < 8 and coord:
+        if len(self.fired_bullets) < self.max_fired_bullets and coord:
             bullet = Bullet(canvas.coords(self.id)[0], 0, "shooter")
             bullet.install_in(canvas)
             bullet.move_in(canvas)
@@ -177,7 +166,7 @@ class Bullet:
             )
         else:
             self.line = canvas.create_line(
-                self.x, self.y + 20, self.x, self.y, fill="red"
+                self.x, self.y + 20, self.x, self.y, fill=self.color
             )
 
     def move_in(self, canvas):
@@ -206,8 +195,9 @@ class Bullet:
             canvas.after(100, self.move_down, canvas)
 
 
-# les  bunkers de défender
 class Bunkers:
+    """Class pour créer les bunkers de défender"""
+
     cpt = 0  # compteur de nombre de petit bunker dans bunkers dans game, initialisation = 0
     cpt_row = 0
 
@@ -241,7 +231,9 @@ class Bunkers:
             self.dy += 20
 
 
-class Score(object):
+class Score:
+    """Class pour stocker nom + score de joueur"""
+
     def __init__(self, nom, points):
         self.nom = nom
         self.points = points
@@ -264,7 +256,9 @@ class Score(object):
         return "[" + self.nom + "," + str(self.points) + "]"
 
 
-class Resultat(object):
+class Resultat:
+    """Class pour stocker plusieurs noms + scores des playeurs"""
+
     def __init__(self):
         self.players = []
 
@@ -275,10 +269,10 @@ class Resultat(object):
 
         self.players.sort(key=operator.attrgetter("points"), reverse=True)
         chaine = str(self.players[0])
-        for e in self.players[
+        for i in self.players[
             1:9
         ]:  # pour afficher high score mais pas beaucoup , que 9 personnes
-            chaine = chaine + "\n" + str(e)
+            chaine = chaine + "\n" + str(i)
         return chaine
 
     @classmethod
@@ -329,6 +323,7 @@ class Game:
         self.colide_bunker()
         self.colide_bunker2()
         self.manage_touched_aliens_by()
+
         # Initialisation le numéro de score = 0
         self.score = 0
         # Initialisation le numéro de "live" = 0
@@ -348,7 +343,6 @@ class Game:
         self.defender.install_in(self.canvas)
         self.fleet.install_in(self.canvas)
         self.bunker.install_in(self.canvas)
-        # self.fleet.manage_touched_aliens_by(self.canvas, self.defender.id)
         self.frame.winfo_toplevel().bind("<Key>", self.keypress)
 
     def keypress(self, event):
@@ -379,6 +373,7 @@ class Game:
                         self.explosion(coord_alien[0], coord_alien[1])
                         self.fleet.alien_array.remove(alien)
                         self.canvas.delete(alien.id)
+                        self.check()
                         self.update_point(
                             50
                         )  # quand bullet de défender touche alien, on gagne 50 points
@@ -523,13 +518,24 @@ class Game:
         """Méthode pour delete all quand le joueur est mort """
         self.canvas.delete(self.defender.id)
         self.canvas.delete("all")
-        exp = self.canvas.create_image(
-            0, 0, image=self.photo, tags="image", anchor="nw"
-        )
-        text = self.canvas.create_text(
+        self.canvas.create_image(0, 0, image=self.photo, tags="image", anchor="nw")
+        self.canvas.create_text(
             400, 300, font=("MS Serif", 30), text="You died !", fill="red",
         )
         self.get_name()
+
+    def win(self):
+        self.canvas.delete(self.defender.id)
+        self.canvas.delete("all")
+        self.canvas.create_image(0, 0, image=self.photo, tags="image", anchor="nw")
+        self.canvas.create_text(
+            400, 300, font=("MS Serif", 30), text="You win !", fill="red",
+        )
+        self.get_name()
+
+    def check(self):
+        if not self.fleet.alien_array:
+            self.win()
 
 
 class SpaceInvaders:
