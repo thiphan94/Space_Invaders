@@ -103,6 +103,8 @@ class Defender:
         self.max_fired_bullets = 8
         self.fired_bullets = []
         self.displace = 0
+        self.left = False
+        self.right = False
 
     def install_in(self, canvas):
         """Création de défender."""
@@ -112,20 +114,22 @@ class Defender:
             lx, ly, lx + self.width, ly + self.height, fill="white"
         )
 
-    def move_in(self, canvas, direction):
+    def move_in(self, canvas):
         """Mouvement de défender."""
-        if direction == "left":
+        if self.left:
             if self.displace >= -400:
                 self.displace -= 10
                 canvas.move(self.id, -10, 0)
                 canvas.update()
                 time.sleep(0.01)
-        if direction == "right":
+        if self.right:
             if self.displace <= 360:
                 self.displace += 10
                 canvas.move(self.id, 10, 0)
                 canvas.update()
                 time.sleep(0.01)
+
+        canvas.after(100, self.move_in, canvas)
 
     def fire(self, canvas):
         """Contrôler le maximum des bullets sur écran."""
@@ -361,18 +365,27 @@ class Game:
         """Commencer à créer défender, aliens, bunkers."""
         self.canvas.create_image(0, 0, image=self.ecran, tags="image", anchor="nw")
         self.defender.install_in(self.canvas)
+        self.defender.move_in(self.canvas)
         self.fleet.install_in(self.canvas)
         self.bunker.install_in(self.canvas)
         self.frame.winfo_toplevel().bind("<Key>", self.keypress)
+        self.frame.winfo_toplevel().bind("<KeyRelease>", self.keyrelease)
 
     def keypress(self, event):
         """Méthode pour mettre en lien les keyboards et les class."""
         if event.keysym == "Left":
-            self.defender.move_in(self.canvas, "left")
+            self.defender.left = True
         if event.keysym == "Right":
-            self.defender.move_in(self.canvas, "right")
+            self.defender.right = True
         elif event.keysym == "space":
             self.defender.fire(self.canvas)
+
+    def keyrelease(self, event):
+        """Méthode pour mettre en lien les keyboards et les class."""
+        if event.keysym == "Left":
+            self.defender.left = False
+        if event.keysym == "Right":
+            self.defender.right = False
 
     def start_animation(self):
         """Appeler la création des bases au méthode start()."""
