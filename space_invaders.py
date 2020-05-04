@@ -22,8 +22,8 @@ class Alien:
         self.direction = 1
         self.dx = dx
         self.dy = dy
-        self.install_in(canvas, dx, dy)
         self.fired_tir = []
+        self.install_in(canvas, dx, dy)
 
     def install_in(self, canvas, dx, dy):
         """Valeurs de coordonnées de alien vont changer par rapport input dx, dy à classe Fleet."""
