@@ -3,7 +3,7 @@ import math
 import random
 import json
 import operator
-
+import time
 
 try:
     import tkinter as tk
@@ -245,10 +245,11 @@ class Bunkers:
 class Score:
     """Class pour stocker nom + score de joueur"""
 
-    def __init__(self, nom, points):
+    def __init__(self, nom, points, temps):
         """Deux attributes de Class."""
         self.nom = nom
         self.points = points
+        self.temps = temps
 
     def toFile(self, fich):
         """Mode de écrire au fichier."""
@@ -262,13 +263,13 @@ class Score:
         """Mode de lecture à partir de fichier."""
         f = open(fich, "r")
         d = json.load(f)
-        lnew = Score(d["nom"], d["points"])
+        lnew = Score(d["nom"], d["points"], d["temps"])
         f.close()
         return lnew
 
     def __str__(self):
         """Affichage de résultat."""
-        return "[" + self.nom + "," + str(self.points) + "]"
+        return "[" + self.nom + "," + str(self.points) + "," + str(self.temps) + "]"
 
 
 class Resultat:
@@ -300,7 +301,7 @@ class Resultat:
         liste = []
         for d in tmp:
             # créer un livre
-            l = Score(d["nom"], d["points"])
+            l = Score(d["nom"], d["points"], d["temps"])
             # l'ajouter dans la liste
             liste.append(l)
         lib = Resultat()
@@ -317,6 +318,7 @@ class Resultat:
             d = {}
             d["nom"] = l.nom
             d["points"] = l.points
+            d["temps"] = l.temps
             tmp.append(d)
         json.dump(tmp, f)
         f.close()
@@ -360,6 +362,14 @@ class Game:
             self.frame, font=("Minecraft", 15), text="Lives : {0}/3".format(self.live)
         )
         self.displaylive.place(x=700, y=5)
+        # Créer Label de Temps
+        self.time = tk.Label(self.frame, font=("Minecraft", 15), text="Time:")
+        self.time.place(x=250, y=5)
+        # Créer Label d'un montre
+        self.sec = 0
+        self.displaytime = tk.Label(text="", font=("Helvetica", 15), fg="black")
+        self.displaytime.place(x=300, y=5)
+        self.update_clock()
 
     def start(self):
         """Commencer à créer défender, aliens, bunkers."""
@@ -372,7 +382,7 @@ class Game:
         self.frame.winfo_toplevel().bind("<KeyRelease>", self.keyrelease)
 
     def keypress(self, event):
-        """Méthode pour mettre en lien les keyboards et les class."""
+        """Méthode pour mettre en lien les keyboards et défendeur."""
         if event.keysym == "Left":
             self.defender.left = True
         if event.keysym == "Right":
@@ -381,7 +391,7 @@ class Game:
             self.defender.fire(self.canvas)
 
     def keyrelease(self, event):
-        """Méthode pour mettre en lien les keyboards et les class."""
+        """Méthode pour mettre en lien les keyboards et défendeur (button libre, pas pressée)."""
         if event.keysym == "Left":
             self.defender.left = False
         if event.keysym == "Right":
@@ -390,6 +400,12 @@ class Game:
     def start_animation(self):
         """Appeler la création des bases au méthode start()."""
         self.start()
+
+    def update_clock(self):
+        """mettre à jour le temps"""
+        self.sec = self.sec + 1
+        self.displaytime.configure(text=self.sec)
+        self.canvas.after(1000, self.update_clock)
 
     def colide(self):
         """Envisager la distance entre bullet et aliens."""
@@ -519,7 +535,7 @@ class Game:
 
         def print_score():
             nom = entry1.get()
-            abc = Score(nom, self.score)
+            abc = Score(nom, self.score, self.get_temps)
             abc.toFile("player.json")
             libN = Resultat.fromFile("players.json")
             new = abc
@@ -527,7 +543,9 @@ class Game:
             libN.toFile("players.json")
             libN2 = Resultat.fromFile("players.json")
 
-            label3 = tk.Label(self.frame, text="Player with score: " + abc.__str__())
+            label3 = tk.Label(
+                self.frame, text="Player with score and time: " + abc.__str__()
+            )
             label3.config(font=("helvetica", 15))
             self.canvas.create_window(400, 250, window=label3)
 
@@ -550,6 +568,7 @@ class Game:
 
     def delete_all(self):
         """Méthode pour delete all quand le joueur est mort."""
+        self.get_temps = self.sec  # prendre le temps quand défendeur est mort
         self.canvas.delete(self.defender.id)
         self.canvas.delete("all")
         self.canvas.create_image(0, 0, image=self.photo, tags="image", anchor="nw")
