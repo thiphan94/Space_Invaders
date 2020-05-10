@@ -439,21 +439,13 @@ class Game:
             array1 = self.fleet.fired_tir
         for o1 in array1:
             for o2 in array2:
-                if object1 == "bullet":
-                    coord1 = self.canvas.coords(o1.id)
-                elif object1 == "tir":
-                    coord1 = self.canvas.coords(o1.id)
-                # coord1 = self.canvas.coords(o1.id)
+                coord1 = self.canvas.coords(o1.id)
                 coord2 = self.canvas.coords(o2.id)
                 if coord1 and coord2:
                     distance = self.calculate_distance(coord1, coord2)
                     if distance < 20:
-                        if object1 == "bullet":
-                            array1.remove(o1)
-                            self.canvas.delete(o1.id)
-                        elif object1 == "tir":
-                            array1.remove(o1)
-                            self.canvas.delete(o1.id)
+                        array1.remove(o1)
+                        self.canvas.delete(o1.id)
                         if object2 == "alien":
                             self.explosion(coord2[0], coord2[1])
                             array2.remove(o2)
