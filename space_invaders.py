@@ -160,7 +160,6 @@ class Bullet:
         self.color = "red"
         self.speed = 10
         self.id = None
-        self.line = None
         self.out_of_sight = False
         self.tir_out_of_sight = False
         self.y = y
@@ -177,7 +176,7 @@ class Bullet:
                 fill=self.color,
             )
         else:
-            self.line = canvas.create_line(
+            self.id = canvas.create_line(
                 self.x, self.y + 20, self.x, self.y, fill=self.color
             )
 
@@ -196,12 +195,12 @@ class Bullet:
 
     def move_down(self, canvas):
         """Déplacer le tir et le supprimer quand  tir touche bord bas."""
-        canvas.move(self.line, 0, +self.speed)
+        canvas.move(self.id, 0, +self.speed)
         canvas.update()
-        coord = canvas.coords(self.line)
+        coord = canvas.coords(self.id)
         if coord:
             if coord[3] >= 570:
-                canvas.delete(self.line)
+                canvas.delete(self.id)
                 self.tir_out_of_sight = True
                 return
             canvas.after(100, self.move_down, canvas)
@@ -443,7 +442,7 @@ class Game:
                 if object1 == "bullet":
                     coord1 = self.canvas.coords(o1.id)
                 elif object1 == "tir":
-                    coord1 = self.canvas.coords(o1.line)
+                    coord1 = self.canvas.coords(o1.id)
                 # coord1 = self.canvas.coords(o1.id)
                 coord2 = self.canvas.coords(o2.id)
                 if coord1 and coord2:
@@ -454,7 +453,7 @@ class Game:
                             self.canvas.delete(o1.id)
                         elif object1 == "tir":
                             array1.remove(o1)
-                            self.canvas.delete(o1.line)
+                            self.canvas.delete(o1.id)
                         if object2 == "alien":
                             self.explosion(coord2[0], coord2[1])
                             array2.remove(o2)
