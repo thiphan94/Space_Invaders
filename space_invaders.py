@@ -21,7 +21,6 @@ class Alien:
         self.direction = 1
         self.dx = dx
         self.dy = dy
-        self.fired_tir = []
         self.install_in(canvas, dx, dy)
 
     def install_in(self, canvas, dx, dy):
@@ -39,20 +38,14 @@ class Alien:
         canvas.after(500, self.move_in, canvas)
 
     def fire(self, canvas):
-        """Méthode pour tirer un bullet d'alien."""
-        self.update()
+        """Méthode pour tirer un tir d'alien."""
         coord = canvas.coords(self.id)
         if coord:
             tir = Bullet(coord[0], coord[1], "alien")
             tir.install_in(canvas)
             tir.move_down(canvas)
-            self.fired_tir.append(tir)
-
-    def update(self):
-        """Tester si le bullet n'est pas encore sur écran."""
-        for bullet in self.fired_tir:
-            if bullet.tir_out_of_sight:
-                self.fired_tir.remove(bullet)
+            return tir
+        return None
 
 
 class Fleet:
@@ -65,6 +58,7 @@ class Fleet:
         self.alien_array = []
         self.dx = 0
         self.dy = 50
+        self.fired_tir = []
 
     def install_in(self, canvas):
         """Créer la matrice des aliens, on ajouter les aliens au list des aliens."""
@@ -85,10 +79,19 @@ class Fleet:
 
     def tir_of_enemies(self, canvas):
         """Choissir random un alien dans matrice pour tirer."""
+        self.update()
         if self.alien_array:
             alien_tir = self.alien_array[random.randint(0, len(self.alien_array)) - 1]
-            alien_tir.fire(canvas)
+            tir = alien_tir.fire(canvas)
+            if tir:
+                self.fired_tir.append(tir)
         canvas.after(1000, self.tir_of_enemies, canvas)
+
+    def update(self):
+        """Tester si le tir n'est pas encore sur écran."""
+        for tir in self.fired_tir:
+            if tir.tir_out_of_sight:
+                self.fired_tir.remove(tir)
 
 
 class Defender:
@@ -350,8 +353,8 @@ class Game:
         self.explosions = []
         self.collide("bullet", "alien")
         self.collide("bullet", "bunker")
-        self.collide2("tir", "bunker")
-        self.collide2("tir", "defender")
+        self.collide("tir", "bunker")
+        self.collide("tir", "defender")
         self.manage_touched_aliens_by()
 
         # Initialisation le numéro de score = 0
@@ -424,30 +427,51 @@ class Game:
         return distance
 
     def collide(self, object1, object2):
-        """Envisager la distance entre bullet et aliens."""
+        """Envisager la collision entre object1 et object2."""
         if object2 == "alien":
-            array = self.fleet.alien_array
+            array2 = self.fleet.alien_array
         elif object2 == "bunker":
-            array = self.bunker.bunkers_array
-        for bullet in self.defender.fired_bullets:
-            for o2 in array:
-                coord = self.canvas.coords(bullet.id)
+            array2 = self.bunker.bunkers_array
+        elif object2 == "defender":
+            array2 = [self.defender]
+        if object1 == "bullet":
+            array1 = self.defender.fired_bullets
+        elif object1 == "tir":
+            array1 = self.fleet.fired_tir
+        for o1 in array1:
+            for o2 in array2:
+                if object1 == "bullet":
+                    coord1 = self.canvas.coords(o1.id)
+                elif object1 == "tir":
+                    coord1 = self.canvas.coords(o1.line)
+                # coord1 = self.canvas.coords(o1.id)
                 coord2 = self.canvas.coords(o2.id)
-                if coord and coord2:
-                    distance = self.calculate_distance(coord, coord2)
+                if coord1 and coord2:
+                    distance = self.calculate_distance(coord1, coord2)
                     if distance < 20:
-                        self.defender.fired_bullets.remove(bullet)
-                        self.canvas.delete(bullet.id)
+                        if object1 == "bullet":
+                            array1.remove(o1)
+                            self.canvas.delete(o1.id)
+                        elif object1 == "tir":
+                            array1.remove(o1)
+                            self.canvas.delete(o1.line)
                         if object2 == "alien":
                             self.explosion(coord2[0], coord2[1])
-                            array.remove(o2)
+                            array2.remove(o2)
                             self.canvas.delete(o2.id)
                             self.check()
                             self.update_point(
                                 50
                             )  # quand bullet de défender touche alien, on gagne 50 points
-                        else:
-                            array.remove(o2)
+                        elif object2 == "defender":
+                            self.update_live(
+                                1
+                            )  # quand tir de alien touche défender, on va perdre 1 'live'
+                            if self.live == 3:
+                                # quand joueur mort , on appelle méthode delete_all
+                                self.delete_all()
+                        elif object2 == "bunker":
+                            array2.remove(o2)
                             self.canvas.delete(o2.id)
         if object2 == "alien":
             end = time.time()
@@ -463,34 +487,6 @@ class Game:
         exp = self.canvas.create_image(x, y, image=self.explosion_gif, tags="image")
         start = time.time()
         self.explosions.append((exp, start))
-
-    def collide2(self, object1, object2):
-        """Envisager la distance entre bullet et aliens."""
-        if object2 == "bunker":
-            array = self.bunker.bunkers_array
-        elif object2 == "defender":
-            array = [self.defender]
-        for alien in self.fleet.alien_array:
-            for tir in alien.fired_tir:
-                for o2 in array:
-                    coord = self.canvas.coords(tir.line)
-                    coord2 = self.canvas.coords(o2.id)
-                    if coord and coord2:
-                        distance = self.calculate_distance(coord, coord2)
-                        if distance < 20:
-                            if object2 == "bunker":
-                                alien.fired_tir.remove(tir)
-                                self.canvas.delete(tir.line)
-                                array.remove(o2)
-                                self.canvas.delete(o2.id)
-                            elif object2 == "defender":
-                                self.update_live(
-                                    1
-                                )  # quand tir de alien touche défender, on va perdre 1 'live'
-                                if self.live == 3:
-                                    # quand joueur mort , on appelle méthode delete_all
-                                    self.delete_all()
-        self.canvas.after(200, self.collide2, object1, object2)
 
     def update_point(self, pts):
         """Méthode pour mettre à jour les points de défender."""
