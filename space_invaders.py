@@ -204,6 +204,23 @@ class Bullet:
             canvas.after(100, self.move_down, canvas)
 
 
+class Bunker:
+    """Class pour créer un bunker de défender."""
+
+    def __init__(self, canvas, dx, dy):
+        """création un bunker."""
+        self.dx = dx
+        self.dy = dy
+        self.id = None
+        self.install_in(canvas, dx, dy)
+
+    def install_in(self, canvas, dx, dy):
+        """Créer id d'un bunker."""
+        self.id = canvas.create_rectangle(
+            dx, dy, dx + 20, dy + 20, outline="purple", fill="grey",
+        )
+
+
 class Bunkers:
     """Class pour créer les bunkers de défender."""
 
@@ -216,28 +233,17 @@ class Bunkers:
         self.dx = 70
         self.dy = 490
         self.bunkers_array = []
-        self.id = None
 
     def install_in(self, canvas):
         """Créer la matrice des aliens, on ajouter les aliens au list des aliens."""
         while self.dy <= 530:
             while self.dx <= 750:
-                self.bunkers_array.append(
-                    canvas.create_rectangle(
-                        self.dx,
-                        self.dy,
-                        self.dx + 20,
-                        self.dy + 20,
-                        outline="purple",
-                        fill="grey",
-                    )
-                )
+                self.bunkers_array.append(Bunker(canvas, self.dx, self.dy))
                 self.dx += 20
                 self.compteur += 1
                 if self.compteur == 3:
                     self.dx += 140
                     self.compteur = 0
-
             self.dx = 70
             self.dy += 20
 
@@ -421,15 +427,12 @@ class Game:
         """Envisager la distance entre bullet et aliens."""
         if object2 == "alien":
             array = self.fleet.alien_array
-        else:
+        elif object2 == "bunker":
             array = self.bunker.bunkers_array
         for bullet in self.defender.fired_bullets:
             for o2 in array:
                 coord = self.canvas.coords(bullet.id)
-                if object2 == "alien":
-                    coord2 = self.canvas.coords(o2.id)
-                else:
-                    coord2 = self.canvas.coords(o2)
+                coord2 = self.canvas.coords(o2.id)
                 if coord and coord2:
                     distance = self.calculate_distance(coord, coord2)
                     if distance < 20:
@@ -445,7 +448,7 @@ class Game:
                             )  # quand bullet de défender touche alien, on gagne 50 points
                         else:
                             array.remove(o2)
-                            self.canvas.delete(o2)
+                            self.canvas.delete(o2.id)
         if object2 == "alien":
             end = time.time()
             for value in self.explosions:
@@ -466,12 +469,12 @@ class Game:
         if object2 == "bunker":
             array = self.bunker.bunkers_array
         elif object2 == "defender":
-            array = [self.defender.id]
+            array = [self.defender]
         for alien in self.fleet.alien_array:
             for tir in alien.fired_tir:
                 for o2 in array:
                     coord = self.canvas.coords(tir.line)
-                    coord2 = self.canvas.coords(o2)
+                    coord2 = self.canvas.coords(o2.id)
                     if coord and coord2:
                         distance = self.calculate_distance(coord, coord2)
                         if distance < 20:
@@ -479,7 +482,7 @@ class Game:
                                 alien.fired_tir.remove(tir)
                                 self.canvas.delete(tir.line)
                                 array.remove(o2)
-                                self.canvas.delete(o2)
+                                self.canvas.delete(o2.id)
                             elif object2 == "defender":
                                 self.update_live(
                                     1
