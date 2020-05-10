@@ -43,7 +43,8 @@ class Alien:
         if coord:
             tir = Bullet(coord[0], coord[1], "alien")
             tir.install_in(canvas)
-            tir.move_down(canvas)
+            # tir.move_down(canvas)
+            tir.move_in(canvas, "alien")
             return tir
         return None
 
@@ -90,7 +91,7 @@ class Fleet:
     def update(self):
         """Tester si le tir n'est pas encore sur écran."""
         for tir in self.fired_tir:
-            if tir.tir_out_of_sight:
+            if tir.out_of_sight:
                 self.fired_tir.remove(tir)
 
 
@@ -140,7 +141,7 @@ class Defender:
         if len(self.fired_bullets) < self.max_fired_bullets and coord:
             bullet = Bullet(canvas.coords(self.id)[0], 0, "shooter")
             bullet.install_in(canvas)
-            bullet.move_in(canvas)
+            bullet.move_in(canvas, "defender")
             self.fired_bullets.append(bullet)
 
     def update(self):
@@ -161,7 +162,6 @@ class Bullet:
         self.speed = 10
         self.id = None
         self.out_of_sight = False
-        self.tir_out_of_sight = False
         self.y = y
         self.role = role
 
@@ -180,30 +180,20 @@ class Bullet:
                 self.x, self.y + 20, self.x, self.y, fill=self.color
             )
 
-    def move_in(self, canvas):
-        """Déplacer le bullet et le supprimer quand  bullet touche bord haut."""
-        canvas.move(self.id, 0, -self.speed)
+    def move_in(self, canvas, command):
+        """Déplacer le bullet et le tir et le supprimer quand ils ne sont pas sur écran."""
+        if command == "defender":
+            canvas.move(self.id, 0, -self.speed)
+        elif command == "alien":
+            canvas.move(self.id, 0, +self.speed)
         canvas.update()
         coord = canvas.coords(self.id)
-
         if coord:
-            if coord[3] < 10:
+            if coord[3] < 10 or coord[3] >= 570:
                 canvas.delete(self.id)
                 self.out_of_sight = True
                 return
-            canvas.after(100, self.move_in, canvas)
-
-    def move_down(self, canvas):
-        """Déplacer le tir et le supprimer quand  tir touche bord bas."""
-        canvas.move(self.id, 0, +self.speed)
-        canvas.update()
-        coord = canvas.coords(self.id)
-        if coord:
-            if coord[3] >= 570:
-                canvas.delete(self.id)
-                self.tir_out_of_sight = True
-                return
-            canvas.after(100, self.move_down, canvas)
+            canvas.after(100, self.move_in, canvas, command)
 
 
 class Bunker:
@@ -308,7 +298,7 @@ class Resultat:
         tmp = json.load(f)
         liste = []
         for d in tmp:
-            # créer un livre
+            # créer un joueur
             l = Score(d["nom"], d["points"], d["temps"])
             # l'ajouter dans la liste
             liste.append(l)
@@ -359,7 +349,7 @@ class Game:
         # Initialisation le numéro de score = 0
         self.score = 0
         # Initialisation le numéro de "live" = 0
-        self.live = 0
+        self.live = 3
         # Créer Label de Score
         self.displayscore = tk.Label(
             self.frame, font=("Minecraft", 15), text="Score : {0}".format(self.score)
@@ -445,7 +435,7 @@ class Game:
                 coord2 = self.canvas.coords(o2.id)
                 if coord1 and coord2:
                     distance = self.calculate_distance(coord1, coord2)
-                    if distance < 20:
+                    if distance < 40:
                         array1.remove(o1)
                         self.canvas.delete(o1.id)
                         if object2 == "alien":
@@ -460,7 +450,7 @@ class Game:
                             self.update_live(
                                 1
                             )  # quand tir de alien touche défender, on va perdre 1 'live'
-                            if self.live == 3:
+                            if self.live == 0:
                                 # quand joueur mort , on appelle méthode end_game
                                 self.end_game("over")
                         elif object2 == "bunker":
@@ -473,7 +463,7 @@ class Game:
                 if end - start > 0.01:
                     self.explosions.remove(value)
                     self.canvas.delete(explosion)
-        self.canvas.after(200, self.collide, object1, object2)
+        self.canvas.after(500, self.collide, object1, object2)
 
     def explosion(self, x, y):
         """Créer image d'explosions and l'ajouter au liste des explosions."""
@@ -490,7 +480,7 @@ class Game:
 
     def update_live(self, pts):
         """Méthode pour mettre à jour les "lives" de défender."""
-        self.live += pts
+        self.live -= pts
         self.displaylive.config(
             font=("Minecraft", 15), text="Lives : {0}/3".format(self.live)
         )
