@@ -175,7 +175,7 @@ class Bullet:
                 565,
                 fill=self.color,
             )
-        else:
+        elif self.role == "alien":
             self.id = canvas.create_line(
                 self.x, self.y + 20, self.x, self.y, fill=self.color
             )
@@ -389,7 +389,9 @@ class Game:
         self.fleet.install_in(self.canvas)
         self.bunker.install_in(self.canvas)
         self.frame.winfo_toplevel().bind("<Key>", self.keypress)
-        self.frame.winfo_toplevel().bind("<KeyRelease>", self.keyrelease)
+        self.frame.winfo_toplevel().bind(
+            "<KeyRelease>", self.keyrelease
+        )  # résoudre "Binding keys to keyboard events"
 
     def keypress(self, event):
         """Méthode pour mettre en lien les keyboards et défender."""
@@ -459,8 +461,8 @@ class Game:
                                 1
                             )  # quand tir de alien touche défender, on va perdre 1 'live'
                             if self.live == 3:
-                                # quand joueur mort , on appelle méthode delete_all
-                                self.delete_all()
+                                # quand joueur mort , on appelle méthode end_game
+                                self.end_game("over")
                         elif object2 == "bunker":
                             array2.remove(o2)
                             self.canvas.delete(o2.id)
@@ -499,7 +501,7 @@ class Game:
             coord = self.canvas.coords(alien.id)
             if coord:
                 if coord[1] > 510:
-                    self.delete_all()
+                    self.end_game("over")
         self.canvas.after(100, self.manage_touched_aliens_by)
 
     def get_name(self):
@@ -516,8 +518,7 @@ class Game:
             abc = Score(nom, self.score, self.get_playtime)
             abc.toFile("player.json")
             libN = Resultat.fromFile("players.json")
-            new = abc
-            libN.ajout(new)
+            libN.ajout(abc)
             libN.toFile("players.json")
             libN2 = Resultat.fromFile("players.json")
 
@@ -544,31 +545,26 @@ class Game:
         )
         self.canvas.create_window(400, 200, window=button1)
 
-    def delete_all(self):
-        """Méthode pour delete all quand le joueur est mort."""
+    def end_game(self, command):
+        """Méthode pour delete all quand le joueur est mort ou gagné."""
         self.get_playtime = self.sec  # prendre le temps quand défendeur est mort
         self.canvas.delete(self.defender.id)
         self.canvas.delete("all")
         self.canvas.create_image(0, 0, image=self.photo, tags="image", anchor="nw")
-        self.canvas.create_text(
-            400, 300, font=("MS Serif", 30), text="You died !", fill="red",
-        )
-        self.get_name()
-
-    def win(self):
-        """Méthode pour affichage quand joueur gagne."""
-        self.canvas.delete(self.defender.id)
-        self.canvas.delete("all")
-        self.canvas.create_image(0, 0, image=self.photo, tags="image", anchor="nw")
-        self.canvas.create_text(
-            400, 300, font=("MS Serif", 30), text="You win !", fill="red",
-        )
+        if command == "over":
+            self.canvas.create_text(
+                400, 300, font=("MS Serif", 30), text="You died !", fill="red",
+            )
+        elif command == "win":
+            self.canvas.create_text(
+                400, 300, font=("MS Serif", 30), text="You win !", fill="red",
+            )
         self.get_name()
 
     def check(self):
         """Méthode pour vérifier si les aliens sont tous tués."""
         if not self.fleet.alien_array:
-            self.win()
+            self.end_game("win")
 
 
 class SpaceInvaders:
@@ -583,6 +579,7 @@ class SpaceInvaders:
         self.root.geometry(
             "800x600+500+50"
         )  # quand je run code avec Powershell, l'écran de game va être à droit
+        # plus facile pour fix bug = print les erreurs quand jouer en même temps
         self.frame = tk.Frame(self.root, width=width, height=height, bg="green")
         self.frame.pack()
         self.game = Game(self.frame)
