@@ -3,7 +3,6 @@ import math
 import random
 import json
 import operator
-import time
 
 try:
     import tkinter as tk
@@ -69,8 +68,8 @@ class Fleet:
 
     def install_in(self, canvas):
         """Créer la matrice des aliens, on ajouter les aliens au list des aliens."""
-        for y in range(0, self.aliens_lines, 1):
-            for x in range(0, self.aliens_columns, 1):
+        for _ in range(self.aliens_lines):
+            for _ in range(self.aliens_columns):
                 self.alien_array.append(Alien(canvas, self.dx, self.dy))
                 self.dx += 70
             self.dx = 0
@@ -206,7 +205,7 @@ class Bullet:
 
 
 class Bunkers:
-    """Class pour créer les bunkers de défender"""
+    """Class pour créer les bunkers de défender."""
 
     cpt = 0  # compteur de nombre de petit bunker dans bunkers dans game, initialisation = 0
     cpt_row = 0
@@ -243,7 +242,7 @@ class Bunkers:
 
 
 class Score:
-    """Class pour stocker nom + score de joueur"""
+    """Class pour stocker nom + score de joueur."""
 
     def __init__(self, nom, points, temps):
         """Deux attributes de Class."""
@@ -369,6 +368,8 @@ class Game:
         self.sec = 0
         self.displaytime = tk.Label(text="", font=("Helvetica", 15), fg="black")
         self.displaytime.place(x=300, y=5)
+        # Variable pour prendre le temps de player
+        self.get_playtime = None
         self.update_clock()
 
     def start(self):
@@ -382,7 +383,7 @@ class Game:
         self.frame.winfo_toplevel().bind("<KeyRelease>", self.keyrelease)
 
     def keypress(self, event):
-        """Méthode pour mettre en lien les keyboards et défendeur."""
+        """Méthode pour mettre en lien les keyboards et défender."""
         if event.keysym == "Left":
             self.defender.left = True
         if event.keysym == "Right":
@@ -402,10 +403,18 @@ class Game:
         self.start()
 
     def update_clock(self):
-        """mettre à jour le temps"""
+        """Mettre à jour le temps."""
         self.sec = self.sec + 1
         self.displaytime.configure(text=self.sec)
         self.canvas.after(1000, self.update_clock)
+
+    @staticmethod
+    def calculate_distance(coord1, coord2):
+        """Caluler la distance entre deux points."""
+        distance = math.sqrt(
+            (coord1[0] - coord2[0]) ** 2 + (coord1[1] - coord2[1]) ** 2
+        )
+        return distance
 
     def colide(self):
         """Envisager la distance entre bullet et aliens."""
@@ -414,10 +423,7 @@ class Game:
                 coord = self.canvas.coords(bullet.id)
                 coord_alien = self.canvas.coords(alien.id)
                 if coord and coord_alien:
-                    distance = math.sqrt(
-                        pow((coord[0] - coord_alien[0]), 2)
-                        + pow((coord[1] - coord_alien[1]), 2)
-                    )
+                    distance = self.calculate_distance(coord, coord_alien)
                     if distance < 40:
                         self.defender.fired_bullets.remove(bullet)
                         self.canvas.delete(bullet.id)
@@ -449,10 +455,7 @@ class Game:
                 coord = self.canvas.coords(tir.line)
                 coord_defender = self.canvas.coords(self.defender.id)
                 if coord and coord_defender:
-                    distance = math.sqrt(
-                        pow((coord[0] - coord_defender[0]), 2)
-                        + pow((coord[1] - coord_defender[1]), 2)
-                    )
+                    distance = self.calculate_distance(coord, coord_defender)
                     if distance < 30:
                         alien.fired_tir.remove(tir)
                         self.canvas.delete(tir.line)
@@ -465,7 +468,7 @@ class Game:
         self.canvas.after(200, self.colide_tir)
 
     def update_point(self, pts):
-        """Méthode pour mettre à jour les points de défender"""
+        """Méthode pour mettre à jour les points de défender."""
         self.score += pts
         self.displayscore.config(
             font=("Minecraft", 15), text="Score : {0}".format(self.score)
@@ -485,10 +488,7 @@ class Game:
                 coord = self.canvas.coords(bullet.id)
                 coord_bunker = self.canvas.coords(bunker)
                 if coord and coord_bunker:
-                    distance = math.sqrt(
-                        pow((coord[0] - coord_bunker[0]), 2)
-                        + pow((coord[1] - coord_bunker[1]), 2)
-                    )
+                    distance = self.calculate_distance(coord, coord_bunker)
                     if distance < 10:
                         self.defender.fired_bullets.remove(bullet)
                         self.canvas.delete(bullet.id)
@@ -504,10 +504,7 @@ class Game:
                     coord = self.canvas.coords(tir.line)
                     coord_bunker = self.canvas.coords(bunker)
                     if coord and coord_bunker:
-                        distance = math.sqrt(
-                            pow((coord[0] - coord_bunker[0]), 2)
-                            + pow((coord[1] - coord_bunker[1]), 2)
-                        )
+                        distance = self.calculate_distance(coord, coord_bunker)
                         if distance < 20:
                             alien.fired_tir.remove(tir)
                             self.canvas.delete(tir.line)
@@ -535,7 +532,7 @@ class Game:
 
         def print_score():
             nom = entry1.get()
-            abc = Score(nom, self.score, self.get_temps)
+            abc = Score(nom, self.score, self.get_playtime)
             abc.toFile("player.json")
             libN = Resultat.fromFile("players.json")
             new = abc
@@ -568,7 +565,7 @@ class Game:
 
     def delete_all(self):
         """Méthode pour delete all quand le joueur est mort."""
-        self.get_temps = self.sec  # prendre le temps quand défendeur est mort
+        self.get_playtime = self.sec  # prendre le temps quand défendeur est mort
         self.canvas.delete(self.defender.id)
         self.canvas.delete("all")
         self.canvas.create_image(0, 0, image=self.photo, tags="image", anchor="nw")
@@ -594,7 +591,7 @@ class Game:
 
 
 class SpaceInvaders:
-    """ Main Game class."""
+    """Main Game class."""
 
     def __init__(self):
         """Création frame et titre du jeu."""
