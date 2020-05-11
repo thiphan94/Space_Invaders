@@ -116,19 +116,22 @@ class Defender:
         self.displace = 0
         self.left = False
         self.right = False
+        self.image = tk.PhotoImage(file="space.gif")
 
     def install_in(self, canvas):
         """Création de défender."""
         lx = 400 + self.width / 2
         ly = 600 - self.height - 10
-        self.id = canvas.create_rectangle(
-            lx, ly, lx + self.width, ly + self.height, fill="white"
-        )
+        # self.id = canvas.create_rectangle(
+        #     lx, ly, lx + self.width, ly + self.height, fill="white"
+        # )
+
+        self.id = canvas.create_image(lx, ly, image=self.image, tags="image")
 
     def move_in(self, canvas):
         """Mouvement de défender."""
         if self.left:
-            if self.displace >= -400:
+            if self.displace >= -380:
                 self.displace -= 10
                 canvas.move(self.id, -10, 0)
                 canvas.update()
@@ -232,8 +235,6 @@ class Bunkers:
         """création liste des bunkers au début."""
         self.compteur = Bunkers.cpt
         self.row = Bunkers.cpt_row
-        # self.dx = 70
-        # self.dy = 490
         self.dx = 120
         self.dy = 490
         self.bunkers_array = []
@@ -264,6 +265,13 @@ class Bunkers:
             self.compteur = 0
             self.dx = self.dx - 740
             self.dy += 20
+
+
+# class Bonus:
+#     """ """
+#
+#     def __init__():
+#         pass
 
 
 class Score:
