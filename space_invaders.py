@@ -217,20 +217,24 @@ class Bunker:
     def install_in(self, canvas, dx, dy):
         """Créer id d'un bunker."""
         self.id = canvas.create_rectangle(
-            dx, dy, dx + 20, dy + 20, outline="purple", fill="grey",
+            dx, dy, dx + 20, dy + 20, outline="black", fill="green",
         )
 
 
 class Bunkers:
     """Class pour créer les bunkers de défender."""
 
-    cpt = 0  # compteur de nombre de petit bunker dans bunkers dans game, initialisation = 0
-    cpt_row = 0
+    # compteur de nombre de petit bunker dans bunkers dans game, initialisation = 0
+    cpt = 0
+    cpt_row = 1
 
     def __init__(self):
         """création liste des bunkers au début."""
         self.compteur = Bunkers.cpt
-        self.dx = 70
+        self.row = Bunkers.cpt_row
+        # self.dx = 70
+        # self.dy = 490
+        self.dx = 120
         self.dy = 490
         self.bunkers_array = []
 
@@ -239,12 +243,26 @@ class Bunkers:
         while self.dy <= 530:
             while self.dx <= 750:
                 self.bunkers_array.append(Bunker(canvas, self.dx, self.dy))
-                self.dx += 20
                 self.compteur += 1
-                if self.compteur == 3:
-                    self.dx += 140
+                if self.row == 1 and self.compteur == 1:
+                    self.dx += 180
                     self.compteur = 0
-            self.dx = 70
+                elif self.row == 2:
+                    if self.compteur <= 3:
+                        self.dx += 20
+                        self.compteur += 1
+                    else:
+                        self.dx += 140
+                        self.compteur = 0
+                elif self.row == 3:
+                    if self.compteur < 5:
+                        self.dx += 20
+                    else:
+                        self.dx += 100
+                        self.compteur = 0
+            self.row += 1
+            self.compteur = 0
+            self.dx = self.dx - 740
             self.dy += 20
 
 
@@ -452,17 +470,14 @@ class Game:
                             self.canvas.delete(o2.id)
                             self.check()
                             if o2.nb <= 19:
-                                self.update_point(
-                                    100
-                                )  # quand bullet de défender touche alien (big boss), on gagne 100 points
+                                # bullet touche alien (big boss)-100 points
+                                self.update_point(100)
                             else:
-                                self.update_point(
-                                    50
-                                )  # quand bullet de défender touche alien, on gagne 50 points
+                                # bullet touche alien-50 points
+                                self.update_point(50)
                         elif object2 == "defender":
-                            self.update_live(
-                                1
-                            )  # quand tir de alien touche défender, on va perdre 1 'live'
+                            # quand tir de alien touche défender, on va perdre 1 'live'
+                            self.update_live(1)
                             if self.live == 0:
                                 # quand joueur mort , on appelle méthode end_game
                                 self.end_game("over")
