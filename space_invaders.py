@@ -1,5 +1,6 @@
 """Space Invaders Game."""
 
+
 import time
 import math
 import random
@@ -10,6 +11,8 @@ try:
     import tkinter as tk
 except ImportError:
     import Tkinter as tk
+
+from winsound import PlaySound, SND_FILENAME, SND_LOOP, SND_ASYNC
 
 
 class Alien:
@@ -122,10 +125,6 @@ class Defender:
         """Création de défender."""
         lx = 400 + self.width / 2
         ly = 600 - self.height - 10
-        # self.id = canvas.create_rectangle(
-        #     lx, ly, lx + self.width, ly + self.height, fill="white"
-        # )
-
         self.id = canvas.create_image(lx, ly, image=self.image, tags="image")
 
     def move_in(self, canvas):
@@ -267,13 +266,6 @@ class Bunkers:
             self.dy += 20
 
 
-# class Bonus:
-#     """ """
-#
-#     def __init__():
-#         pass
-
-
 class Score:
     """Class pour stocker nom + score de joueur."""
 
@@ -404,6 +396,7 @@ class Game:
         # Variable pour prendre le temps de player
         self.get_playtime = None
         self.update_clock()
+        self.sound()
 
     def start(self):
         """Commencer à créer défender, aliens, bunkers."""
@@ -442,6 +435,32 @@ class Game:
         self.sec = self.sec + 1
         self.displaytime.configure(text=self.sec)
         self.canvas.after(1000, self.update_clock)
+
+    def sound(self):
+        """Créer la musique pour le jeux."""
+
+        def play_sound():
+            PlaySound("Sound.wav", SND_FILENAME | SND_LOOP | SND_ASYNC)
+
+        def stop_sound():
+            PlaySound(None, SND_FILENAME)
+
+        button = tk.Button(
+            text="Play Music",
+            command=play_sound,
+            bg="brown",
+            fg="white",
+            font=("helvetica", 10, "bold"),
+        )
+        self.canvas.create_window(500, 20, window=button)
+        button_stop = tk.Button(
+            text="Stop Music",
+            command=stop_sound,
+            bg="brown",
+            fg="white",
+            font=("helvetica", 10, "bold"),
+        )
+        self.canvas.create_window(600, 20, window=button_stop)
 
     @staticmethod
     def calculate_distance(coord1, coord2):
