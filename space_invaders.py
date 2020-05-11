@@ -1,3 +1,5 @@
+"""Space Invaders Game."""
+
 import time
 import math
 import random
@@ -13,19 +15,24 @@ except ImportError:
 class Alien:
     """Class pour créer un alien."""
 
-    def __init__(self, canvas, dx, dy):
+    def __init__(self, canvas, dx, dy, nb):
         """Image d'alien et les attributes pour déplacer un alien."""
         self.id = None
         self.pim = tk.PhotoImage(file="alien.gif")
+        self.pim2 = tk.PhotoImage(file="alien2.gif")
         self.steps = 0
         self.direction = 1
         self.dx = dx
         self.dy = dy
-        self.install_in(canvas, dx, dy)
+        self.nb = nb
+        self.install_in(canvas, dx, dy, nb)
 
-    def install_in(self, canvas, dx, dy):
+    def install_in(self, canvas, dx, dy, nb):
         """Valeurs de coordonnées de alien vont changer par rapport input dx, dy à classe Fleet."""
-        self.id = canvas.create_image(dx + 30, dy, image=self.pim, tags="image")
+        if nb > 19:
+            self.id = canvas.create_image(dx + 30, dy, image=self.pim, tags="image")
+        else:
+            self.id = canvas.create_image(dx + 30, dy, image=self.pim2, tags="image")
 
     def move_in(self, canvas):
         """Déplacer un alien en 9 pas, selon direction(1 est de gauche à droite, -1 est en revanche)."""
@@ -43,7 +50,6 @@ class Alien:
         if coord:
             tir = Bullet(coord[0], coord[1], "alien")
             tir.install_in(canvas)
-            # tir.move_down(canvas)
             tir.move_in(canvas, "alien")
             return tir
         return None
@@ -60,13 +66,15 @@ class Fleet:
         self.dx = 0
         self.dy = 50
         self.fired_tir = []
+        self.nb = 0
 
     def install_in(self, canvas):
         """Créer la matrice des aliens, on ajouter les aliens au list des aliens."""
         for _ in range(self.aliens_lines):
             for _ in range(self.aliens_columns):
-                self.alien_array.append(Alien(canvas, self.dx, self.dy))
+                self.alien_array.append(Alien(canvas, self.dx, self.dy, self.nb))
                 self.dx += 70
+                self.nb += 1
             self.dx = 0
             self.dy += 70
         self.move_in(canvas)
@@ -335,7 +343,7 @@ class Game:
         self.canvas.pack(side="top", fill="both", expand=True)
         self.explosion_gif = tk.PhotoImage(file="explosion.gif")
         self.photo = tk.PhotoImage(file="gameover.gif")
-        self.ecran = tk.PhotoImage(file="nasa.gif")
+        self.ecran = tk.PhotoImage(file="bk.gif")
         self.defender = Defender()
         self.fleet = Fleet()
         self.bunker = Bunkers()
@@ -443,9 +451,14 @@ class Game:
                             array2.remove(o2)
                             self.canvas.delete(o2.id)
                             self.check()
-                            self.update_point(
-                                50
-                            )  # quand bullet de défender touche alien, on gagne 50 points
+                            if o2.nb <= 19:
+                                self.update_point(
+                                    100
+                                )  # quand bullet de défender touche alien (big boss), on gagne 100 points
+                            else:
+                                self.update_point(
+                                    50
+                                )  # quand bullet de défender touche alien, on gagne 50 points
                         elif object2 == "defender":
                             self.update_live(
                                 1
