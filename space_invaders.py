@@ -23,6 +23,7 @@ class Alien:
         self.id = None
         self.pim = tk.PhotoImage(file="alien.gif")
         self.pim2 = tk.PhotoImage(file="alien2.gif")
+        self.pim3 = tk.PhotoImage(file="boss.gif")
         self.steps = 0
         self.direction = 1
         self.dx = dx
@@ -32,10 +33,12 @@ class Alien:
 
     def install_in(self, canvas, dx, dy, nb):
         """Valeurs de coordonnées de alien vont changer par rapport input dx, dy à classe Fleet."""
-        if nb > 19:
+        if nb < 10:
+            self.id = canvas.create_image(dx + 30, dy, image=self.pim3, tags="image")
+        elif nb > 1 and nb <= 19:
+            self.id = canvas.create_image(dx + 30, dy, image=self.pim2, tags="image2")
+        elif nb > 19:
             self.id = canvas.create_image(dx + 30, dy, image=self.pim, tags="image")
-        else:
-            self.id = canvas.create_image(dx + 30, dy, image=self.pim2, tags="image")
 
     def move_in(self, canvas):
         """Déplacer un alien en 9 pas, selon direction(1 est de gauche à droite, -1 est en revanche)."""
@@ -219,7 +222,7 @@ class Bunker:
     def install_in(self, canvas, dx, dy):
         """Créer id d'un bunker."""
         self.id = canvas.create_rectangle(
-            dx, dy, dx + 20, dy + 20, outline="black", fill="green",
+            dx, dy, dx + 20, dy + 20, outline="green", fill="green",
         )
 
 
@@ -496,11 +499,14 @@ class Game:
                             array2.remove(o2)
                             self.canvas.delete(o2.id)
                             self.check()
-                            if o2.nb <= 19:
-                                # bullet touche alien (big boss)-100 points
+                            if o2.nb < 10:
+                                # bullet touche alien (big boss)+150 points
+                                self.update_point(150)
+                            if o2.nb <= 19 and o2.nb >= 10:
+                                # bullet touche alien (boss)+100 points
                                 self.update_point(100)
                             else:
-                                # bullet touche alien-50 points
+                                # bullet touche alien+50 points
                                 self.update_point(50)
                         elif object2 == "defender":
                             # quand tir de alien touche défender, on va perdre 1 'live'
