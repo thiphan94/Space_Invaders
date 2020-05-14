@@ -15,100 +15,6 @@ except ImportError:
 from winsound import PlaySound, SND_FILENAME, SND_LOOP, SND_ASYNC
 
 
-class Alien:
-    """Class pour créer un alien."""
-
-    def __init__(self, canvas, dx, dy, nb):
-        """Image d'alien et les attributes pour déplacer un alien."""
-        self.id = None
-        self.pim = tk.PhotoImage(file="alien.gif")
-        self.pim2 = tk.PhotoImage(file="alien2.gif")
-        self.pim3 = tk.PhotoImage(file="boss.gif")
-        self.steps = 0
-        self.direction = 1
-        self.dx = dx
-        self.dy = dy
-        self.nb = nb
-        self.install_in(canvas, dx, dy, nb)
-
-    def install_in(self, canvas, dx, dy, nb):
-        """Valeurs de coordonnées de alien vont changer par rapport input dx, dy à classe Fleet."""
-        if nb < 10:
-            self.id = canvas.create_image(dx + 30, dy, image=self.pim3, tags="image")
-        elif nb > 1 and nb <= 19:
-            self.id = canvas.create_image(dx + 30, dy, image=self.pim2, tags="image2")
-        elif nb > 19:
-            self.id = canvas.create_image(dx + 30, dy, image=self.pim, tags="image")
-
-    def move_in(self, canvas):
-        """Déplacer un alien en 9 pas, selon direction(1 est de gauche à droite, -1 est en revanche)."""
-        canvas.move(self.id, self.direction * 10, 0)
-        if self.steps == 9:
-            self.direction = -self.direction
-            self.steps = 0
-            canvas.move(self.id, 0, 20)
-        self.steps += 1
-        canvas.after(500, self.move_in, canvas)
-
-    def fire(self, canvas):
-        """Méthode pour tirer un tir d'alien."""
-        coord = canvas.coords(self.id)
-        if coord:
-            tir = Bullet(coord[0], coord[1], "alien")
-            tir.install_in(canvas)
-            tir.move_in(canvas, "alien")
-            return tir
-        return None
-
-
-class Fleet:
-    """Class pour créer une matrice des aliens."""
-
-    def __init__(self):
-        """Mettre des attributes pour déplacer la matrice."""
-        self.aliens_lines = 5
-        self.aliens_columns = 10
-        self.alien_array = []
-        self.dx = 0
-        self.dy = 50
-        self.fired_tir = []
-        self.nb = 0
-
-    def install_in(self, canvas):
-        """Créer la matrice des aliens, on ajouter les aliens au list des aliens."""
-        for _ in range(self.aliens_lines):
-            for _ in range(self.aliens_columns):
-                self.alien_array.append(Alien(canvas, self.dx, self.dy, self.nb))
-                self.dx += 70
-                self.nb += 1
-            self.dx = 0
-            self.dy += 70
-        self.move_in(canvas)
-        if self.alien_array:
-            self.tir_of_enemies(canvas)
-
-    def move_in(self, canvas):
-        """Parcourir la boucle for pour mouvement de la matrice."""
-        for alien in self.alien_array:
-            alien.move_in(canvas)
-
-    def tir_of_enemies(self, canvas):
-        """Choissir random un alien dans matrice pour tirer."""
-        self.update()
-        if self.alien_array:
-            alien_tir = self.alien_array[random.randint(0, len(self.alien_array)) - 1]
-            tir = alien_tir.fire(canvas)
-            if tir:
-                self.fired_tir.append(tir)
-        canvas.after(1000, self.tir_of_enemies, canvas)
-
-    def update(self):
-        """Tester si le tir n'est pas encore sur écran."""
-        for tir in self.fired_tir:
-            if tir.out_of_sight:
-                self.fired_tir.remove(tir)
-
-
 class Defender:
     """Class pour définir un défender."""
 
@@ -209,6 +115,100 @@ class Bullet:
             canvas.after(100, self.move_in, canvas, command)
 
 
+class Alien:
+    """Class pour créer un alien."""
+
+    def __init__(self, canvas, dx, dy, nb):
+        """Image d'alien et les attributes pour déplacer un alien."""
+        self.id = None
+        self.pim = tk.PhotoImage(file="alien.gif")
+        self.pim2 = tk.PhotoImage(file="alien2.gif")
+        self.pim3 = tk.PhotoImage(file="boss.gif")
+        self.steps = 0
+        self.direction = 1
+        self.dx = dx
+        self.dy = dy
+        self.nb = nb
+        self.install_in(canvas, dx, dy, nb)
+
+    def install_in(self, canvas, dx, dy, nb):
+        """Valeurs de coordonnées de alien vont changer par rapport input dx, dy à classe Fleet."""
+        if nb < 10:
+            self.id = canvas.create_image(dx + 30, dy, image=self.pim3, tags="image")
+        elif nb > 1 and nb <= 19:
+            self.id = canvas.create_image(dx + 30, dy, image=self.pim2, tags="image2")
+        elif nb > 19:
+            self.id = canvas.create_image(dx + 30, dy, image=self.pim, tags="image")
+
+    def move_in(self, canvas):
+        """Déplacer un alien en 9 pas, selon direction(1 est de gauche à droite, -1 est en revanche)."""
+        canvas.move(self.id, self.direction * 10, 0)
+        if self.steps == 9:
+            self.direction = -self.direction
+            self.steps = 0
+            canvas.move(self.id, 0, 20)
+        self.steps += 1
+        canvas.after(500, self.move_in, canvas)
+
+    def fire(self, canvas):
+        """Méthode pour tirer un tir d'alien."""
+        coord = canvas.coords(self.id)
+        if coord:
+            tir = Bullet(coord[0], coord[1], "alien")
+            tir.install_in(canvas)
+            tir.move_in(canvas, "alien")
+            return tir
+        return None
+
+
+class Fleet:
+    """Class pour créer une matrice des aliens."""
+
+    def __init__(self):
+        """Mettre des attributes pour déplacer la matrice."""
+        self.aliens_lines = 5
+        self.aliens_columns = 10
+        self.alien_array = []
+        self.dx = 0
+        self.dy = 50
+        self.fired_tir = []
+        self.nb = 0
+
+    def install_in(self, canvas):
+        """Créer la matrice des aliens, on ajouter les aliens au list des aliens."""
+        for _ in range(self.aliens_lines):
+            for _ in range(self.aliens_columns):
+                self.alien_array.append(Alien(canvas, self.dx, self.dy, self.nb))
+                self.dx += 70
+                self.nb += 1
+            self.dx = 0
+            self.dy += 70
+        self.move_in(canvas)
+        if self.alien_array:
+            self.tir_of_enemies(canvas)
+
+    def move_in(self, canvas):
+        """Parcourir la boucle for pour mouvement de la matrice."""
+        for alien in self.alien_array:
+            alien.move_in(canvas)
+
+    def tir_of_enemies(self, canvas):
+        """Choissir random un alien dans matrice pour tirer."""
+        self.update()
+        if self.alien_array:
+            alien_tir = self.alien_array[random.randint(0, len(self.alien_array)) - 1]
+            tir = alien_tir.fire(canvas)
+            if tir:
+                self.fired_tir.append(tir)
+        canvas.after(1000, self.tir_of_enemies, canvas)
+
+    def update(self):
+        """Tester si le tir n'est pas encore sur écran."""
+        for tir in self.fired_tir:
+            if tir.out_of_sight:
+                self.fired_tir.remove(tir)
+
+
 class Bunker:
     """Class pour créer un bunker de défender."""
 
@@ -242,7 +242,7 @@ class Bunkers:
         self.bunkers_array = []
 
     def install_in(self, canvas):
-        """Créer la matrice des aliens, on ajouter les aliens au list des aliens."""
+        """Créer la matrice des bunkers, on ajouter les bunkers au list des bunkers."""
         while self.dy <= 530:
             while self.dx <= 750:
                 self.bunkers_array.append(Bunker(canvas, self.dx, self.dy))
@@ -550,9 +550,8 @@ class Game:
         """Quand la matrice des aliens touche le défender, Défender va perdu."""
         for alien in self.fleet.alien_array:
             coord = self.canvas.coords(alien.id)
-            if coord:
-                if coord[1] > 510:
-                    self.end_game("over")
+            if coord and coord[1] > 510:
+                self.end_game("over")
         self.canvas.after(100, self.manage_touched_aliens_by)
 
     def get_name(self):
